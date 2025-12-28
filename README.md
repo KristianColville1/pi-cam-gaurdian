@@ -19,6 +19,11 @@ PiCam Guardian is an IoT-based smart home monitoring prototype that provides rem
 - [Deployment](README/deployment.md)
 - [Troubleshooting](README/troubleshooting.md)
 
+### Design Documents
+
+- [System Design Document (SDD)](SDD/index.md)
+- [Database Design Document (DDD)](DDD/index.md)
+
 ---
 
 **Navigation**
