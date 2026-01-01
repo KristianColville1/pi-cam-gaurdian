@@ -92,18 +92,18 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
     <script>
-        // Wait for Paho library to load
-        if (typeof Paho === 'undefined') {
-            console.error('Paho MQTT library failed to load');
-        }
-        
         // MQTT Configuration
         const MQTT_BROKER = "145.241.195.101";
         const MQTT_PORT = 9001;  // WebSocket port
         const MQTT_TOPIC = "sensors/metrics";
         
-        // Create MQTT client
-        const client = new Paho.MQTT.Client(MQTT_BROKER, MQTT_PORT, "web_client_" + Math.random().toString(16).substr(2, 8));
+        // Wait for Paho library to load
+        if (typeof Paho === 'undefined' || typeof Paho.Client === 'undefined') {
+            console.error('Paho MQTT library failed to load');
+        }
+        
+        // Create MQTT client (correct syntax is Paho.Client, not Paho.MQTT.Client)
+        const client = new Paho.Client(MQTT_BROKER, MQTT_PORT, "web_client_" + Math.random().toString(16).substr(2, 8));
         
         // Set callback handlers
         client.onConnectionLost = function(responseObject) {

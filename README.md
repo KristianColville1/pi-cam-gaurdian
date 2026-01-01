@@ -89,7 +89,28 @@ PiCam Guardian is an IoT-based smart home monitoring prototype that provides rem
 
 ### Release 1
 
+**Sensor Data Collection & Real-Time Updates**
+
+- MQTT broker (Mosquitto) installation and configuration on cloud server
+- MQTT server listening on ports 1883 (standard MQTT) and 9001 (WebSocket)
+- Sense HAT sensor metrics collection via `metrics.py`
+- Real-time sensor data publishing to MQTT broker (temperature, humidity, pressure, orientation, acceleration)
+- WebSocket connection from frontend to MQTT broker
+- Dynamic table updates in web interface for real-time sensor data
+- Complete end-to-end data flow: Raspberry Pi sensors → MQTT → Frontend display
+- Systemd service configuration for metrics collection service
+- Network configuration for MQTT ports (1883 and 9001)
+
 ### Release 2
+
+**Public Website & Database Integration**
+
+- Development of public-facing website interface
+- Implementation of database concepts from database design strand
+- Historical data storage and retrieval capabilities
+- Enhanced user interface and user experience features
+
+### Release 3
 
 ### Release 3
 
@@ -159,7 +180,23 @@ This approach ensures early validation of core functionality while maintaining f
 
 #### Timeline
 
+| Milestone                 | Date                 |
+| ------------------------- | -------------------- |
+| Project Start             | Dec 7th, 2025        |
+| Development Start         | Dec 28th, 2025       |
+| Expected Final Submission | Jan 8th, 2026        |
+| Approximate Duration      | 5/6 weeks            |
+
 #### Git Scope & Branching
+
+| Branch       | Description                   |
+| ------------ | ----------------------------- |
+| `main`       | Stable, release-ready version |
+|              |                               |
+| `baseline`   | Baseline project              |
+| `rel1`       | Release 1                     |
+| `rel2`       | Release 2                     |
+| `rel3`       | Release 3                     |
 
 ### Release Results
 
@@ -190,7 +227,29 @@ Networking infrastructure and streaming pipeline are established and ready for i
 
 #### Release 1
 
+Successfully implemented sensor data collection and real-time data transmission infrastructure. Release 1 builds upon the baseline streaming foundation by adding comprehensive sensor monitoring capabilities.
+
+**Achievements:**
+
+- **MQTT Infrastructure**: Configured Mosquitto MQTT broker on the cloud server with dual-protocol support (standard MQTT on port 1883 and WebSocket on port 9001)
+- **Sensor Data Collection**: Implemented `metrics.py` service to collect Sense HAT sensor metrics including temperature (from humidity and pressure sensors), humidity, pressure, orientation (pitch, roll, yaw), and acceleration (x, y, z axes)
+- **Real-Time Data Publishing**: Established continuous data flow with metrics published to MQTT broker every 2 seconds
+- **WebSocket Integration**: Enabled WebSocket connections from web frontend to MQTT broker for real-time data reception
+- **Dynamic Frontend Updates**: Implemented real-time table updates in web interface, displaying live sensor data as it's received
+- **Service Automation**: Configured systemd service for metrics collection with proper error handling and logging
+- **Network Configuration**: Configured firewall rules and security groups for MQTT ports (1883 and 9001)
+
+**Current State:**
+
+Release 1 provides a complete real-time monitoring system with both video streaming (from baseline) and sensor data collection. The system demonstrates full end-to-end data flow from Raspberry Pi sensors through MQTT to the web frontend, with all data updating in real-time.
+
+**Prepared for Future Releases:**
+
+The MQTT infrastructure and real-time data flow established in Release 1 provides the foundation for database integration, historical data storage, and advanced analytics features planned for Release 2.
+
 #### Release 2
+
+Release 2 is in development, focusing on implementing a public-facing website and integrating database concepts from the database design strand. This release will expand the system's capabilities to include data persistence, historical analysis, and enhanced user interface features.
 
 #### Release 3
 
@@ -198,7 +257,33 @@ Networking infrastructure and streaming pipeline are established and ready for i
 
 ### Version Control
 
-### Cloning the Repository
+I used [Visual Studio Code](https://code.visualstudio.com/) as a local repository and IDE & [GitHub](https://github.com/) as a remote repository.
+
+1. Firstly, I needed to create a new repository on Github [pi-cam-gaurdian](https://github.com/KristianColville1/pi-cam-gaurdian).
+2. I opened that repository on my local machine by copying the URL from that repository and cloning it from my IDE for use.
+3. Visual Studio Code opened a new workspace for me.
+4. I created files and folders to use.
+5. To push my newly created files to GitHub I used the terminal by pressing Ctrl + shift + `.
+6. A new terminal opened and then I used the below steps.
+
+   - `git add (name of the file)` *This selects the file for the commit*
+   - `git commit -m "Commit message: (i.e. Initial commit)"` *Allows the developer to assign a specific concise statement to the commit*
+   - `git push` *The final command sends the code to GitHub*
+
+### Cloning this Repository
+
+If you would like to clone this repository please follow the bellow steps.
+
+Instructions:
+
+1. Log into GitHub.
+2. Go to the repository you wish to clone.
+3. Click the green "Code" button.
+4. Copy the URL provided under the HTTPS option.
+5. Open your preferred IDE with Git installed.
+6. Open a new terminal window in your IDE.
+7. Enter the following command exactly: `git clone the-URL-you-copied-from-GitHub`.
+8. Press Enter.
 
 ### Setting Up MQTT Mosquitto
 
