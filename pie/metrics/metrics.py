@@ -20,7 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # MQTT Configuration
-MQTT_BROKER = "145.241.195.101"
+MQTT_BROKER = "pi-guardian.kcolville.com"
 MQTT_PORT = 9001  # WebSocket port
 MQTT_TOPIC = "sensors/metrics"
 PUBLISH_INTERVAL = 2  # seconds

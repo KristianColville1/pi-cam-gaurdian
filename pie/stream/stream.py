@@ -20,7 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # RTSP server endpoint
-RTSP_URL = "rtsp://145.241.195.101:8554/cam"
+RTSP_URL = "rtsp://pi-guardian.kcolville.com:8554/cam"
 
 # Camera command
 CAMERA_CMD = [
