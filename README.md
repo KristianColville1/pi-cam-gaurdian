@@ -27,6 +27,7 @@ PiCam Guardian is an IoT-based smart home monitoring prototype that provides rem
   * [Release 3](#release-3)
 * [System Design](#system-design)
 * [Database Design](#database-design)
+* [Development Log](#development-log)
 * [Data](#data)
 * [Testing](#testing)
 * [Bugs](#bugs)
@@ -45,6 +46,7 @@ PiCam Guardian is an IoT-based smart home monitoring prototype that provides rem
 * [Development &amp; Deployment](#development--deployment)
   * [Version Control](#version-control)
   * [Cloning the Repository](#cloning-this-repository)
+  * [Setting Up MQTT Mosquitto](#setting-up-mqtt-mosquitto)
 * [Credits](#credits)
 
 ---
@@ -108,6 +110,16 @@ The database schema, data models, relationships, and storage design for PiCam Gu
 The DDD covers database schema, entity relationships, data models, tables, indexes, and constraints.
 
 [View Database Design Document →](docs/DDD/index.md)
+
+---
+
+## Development Log
+
+The development log provides insight into the development process, documenting the journey from initial concepts to implementation. These entries capture procedural notes, challenges encountered, solutions explored, and the iterative thought process behind design decisions.
+
+These logs are journal-style entries intended to give readers insight into the development experience rather than serving as step-by-step documentation or tutorials.
+
+[View Development Log Index →](docs/dev-log/index.md)
 
 ---
 
@@ -187,6 +199,76 @@ Networking infrastructure and streaming pipeline are established and ready for i
 ### Version Control
 
 ### Cloning the Repository
+
+### Setting Up MQTT Mosquitto
+
+MQTT Mosquitto is used as a publisher/subscriber system on the server so the Raspberry Pi can send events to it.
+
+**Installation:**
+
+```bash
+sudo apt update
+sudo apt install mosquitto mosquitto-clients
+```
+
+![Mosquitto Installation](docs/dev-log/image/01-01-2026/1767270903753.png)
+
+**Starting the Service:**
+
+```bash
+sudo systemctl enable mosquitto
+sudo systemctl start mosquitto
+```
+
+![Mosquitto Service Status](docs/dev-log/image/01-01-2026/1767270949504.png)
+
+**Network Configuration:**
+
+MQTT uses port 1883. Update the iptables and security list on the cloud server:
+
+```bash
+sudo iptables -A INPUT -p tcp --dport 1883 -j ACCEPT
+```
+
+![Iptables Configuration](docs/dev-log/image/01-01-2026/1767272015212.png)
+
+![Cloud Security List](docs/dev-log/image/01-01-2026/1767272055695.png)
+
+**Verify Service:**
+
+Check that the port is listening:
+
+```bash
+ss -nltp
+```
+
+![Port Listening Status](docs/dev-log/image/01-01-2026/1767272193402.png)
+
+**Testing Basic Communication:**
+
+Test the MQTT setup by subscribing on the Raspberry Pi or a local Linux machine:
+
+```bash
+mosquitto_sub -h your.server.ip -t test/topic
+```
+
+On the server, publish a test message:
+
+```bash
+mosquitto_pub -h your.server.ip -t test/topic -m "hello"
+```
+
+If ports need to be fixed, use a more specific iptables rule:
+
+```bash
+sudo iptables -I INPUT 5 -p tcp --dport 1883 -m conntrack --ctstate NEW -j ACCEPT
+```
+
+![Iptables Fix](docs/dev-log/image/01-01-2026/1767274152501.png)
+
+![Iptables Save](docs/dev-log/image/01-01-2026/1767274217423.png)
+
+![Pi Communication Confirmation](docs/dev-log/image/01-01-2026/1767274242550.png)
 
 ## Credits
 
