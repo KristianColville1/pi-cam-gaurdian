@@ -37,52 +37,52 @@
                 <tbody>
                     <tr>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">Temperature (Humidity)</td>
-                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;">23.5</td>
+                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;" id="temp_humidity">--</td>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">°C</td>
                     </tr>
                     <tr style="background-color: #f9fafb;">
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">Temperature (Pressure)</td>
-                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;">24.1</td>
+                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;" id="temp_pressure">--</td>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">°C</td>
                     </tr>
                     <tr>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">Humidity</td>
-                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;">45.2</td>
+                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;" id="humidity">--</td>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">%</td>
                     </tr>
                     <tr style="background-color: #f9fafb;">
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">Pressure</td>
-                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;">1013.25</td>
+                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;" id="pressure">--</td>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">mbar</td>
                     </tr>
                     <tr>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">Pitch</td>
-                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;">2.3</td>
+                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;" id="pitch">--</td>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">°</td>
                     </tr>
                     <tr style="background-color: #f9fafb;">
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">Roll</td>
-                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;">-1.8</td>
+                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;" id="roll">--</td>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">°</td>
                     </tr>
                     <tr>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">Yaw</td>
-                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;">89.5</td>
+                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;" id="yaw">--</td>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">°</td>
                     </tr>
                     <tr style="background-color: #f9fafb;">
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">Acceleration X</td>
-                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;">0.02</td>
+                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;" id="accel_x">--</td>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">g</td>
                     </tr>
                     <tr>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">Acceleration Y</td>
-                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;">-0.01</td>
+                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;" id="accel_y">--</td>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">g</td>
                     </tr>
                     <tr style="background-color: #f9fafb;">
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">Acceleration Z</td>
-                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;">0.98</td>
+                        <td style="padding: 0.75rem; border: 1px solid #d1d5db;" id="accel_z">--</td>
                         <td style="padding: 0.75rem; border: 1px solid #d1d5db;">g</td>
                     </tr>
                 </tbody>
@@ -90,6 +90,74 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
+    <script>
+        // Wait for Paho library to load
+        if (typeof Paho === 'undefined') {
+            console.error('Paho MQTT library failed to load');
+        }
+        
+        // MQTT Configuration
+        const MQTT_BROKER = "145.241.195.101";
+        const MQTT_PORT = 9001;  // WebSocket port
+        const MQTT_TOPIC = "sensors/metrics";
+        
+        // Create MQTT client
+        const client = new Paho.MQTT.Client(MQTT_BROKER, MQTT_PORT, "web_client_" + Math.random().toString(16).substr(2, 8));
+        
+        // Set callback handlers
+        client.onConnectionLost = function(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                console.error("MQTT connection lost: " + responseObject.errorMessage);
+            }
+        };
+        
+        client.onMessageArrived = function(message) {
+            try {
+                const metrics = JSON.parse(message.payloadString);
+                updateTable(metrics);
+            } catch (e) {
+                console.error("Error parsing MQTT message:", e);
+            }
+        };
+        
+        // Connect to MQTT broker via WebSocket
+        client.connect({
+            onSuccess: function() {
+                console.log("Connected to MQTT broker");
+                client.subscribe(MQTT_TOPIC);
+            },
+            onFailure: function(error) {
+                console.error("Failed to connect to MQTT broker:", error.errorMessage);
+            },
+            useSSL: false
+        });
+        
+        // Update table with sensor metrics
+        function updateTable(metrics) {
+            // Map metric keys to element IDs
+            const metricMap = {
+                "temp_humidity": "temp_humidity",
+                "temp_pressure": "temp_pressure",
+                "humidity": "humidity",
+                "pressure": "pressure",
+                "pitch": "pitch",
+                "roll": "roll",
+                "yaw": "yaw",
+                "accel_x": "accel_x",
+                "accel_y": "accel_y",
+                "accel_z": "accel_z"
+            };
+            
+            // Update each metric value in the table
+            for (const [key, elementId] of Object.entries(metricMap)) {
+                const element = document.getElementById(elementId);
+                if (element && metrics[key] !== undefined) {
+                    element.textContent = metrics[key];
+                }
+            }
+        }
+    </script>
 </body>
 
 </html>
