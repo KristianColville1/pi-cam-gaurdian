@@ -1,10 +1,19 @@
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+import dotenv from 'dotenv';
 
-module.exports = {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: resolve(__dirname, '../../../.env') });
+
+export default {
   // Server
   PORT: process.env.PORT || 3000,
+  HOST: process.env.HOST || '0.0.0.0',
   NODE_ENV: process.env.NODE_ENV || 'development',
+  APP_VERSION: process.env.APP_VERSION || '1.0.0',
+  FRONTEND_URL: process.env.FRONTEND_URL || '*',
 
   // Database
   DB_TYPE: process.env.DB_TYPE || 'better-sqlite3',

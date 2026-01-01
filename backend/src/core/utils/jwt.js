@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
-const env = require('../config/env');
+import jwt from 'jsonwebtoken';
+import env from '../config/env.js';
 
 /**
  * Generate JWT token
@@ -9,7 +9,7 @@ const env = require('../config/env');
  * @param {string} payload.role - User role
  * @returns {string} JWT token
  */
-function generateToken(payload) {
+export function generateToken(payload) {
   const options = {};
 
   if (env.JWT_EXPIRES_IN) {
@@ -25,7 +25,7 @@ function generateToken(payload) {
  * @returns {Object} Decoded token payload
  * @throws {Error} If token is invalid
  */
-function verifyToken(token) {
+export function verifyToken(token) {
   const decoded = jwt.verify(token, env.JWT_SECRET);
   return decoded;
 }
@@ -35,16 +35,10 @@ function verifyToken(token) {
  * @param {string} token - JWT token to decode
  * @returns {Object|null} Decoded token payload or null
  */
-function decodeToken(token) {
+export function decodeToken(token) {
   const decoded = jwt.decode(token);
   if (!decoded) {
     return null;
   }
   return decoded;
 }
-
-module.exports = {
-  generateToken,
-  verifyToken,
-  decodeToken,
-};

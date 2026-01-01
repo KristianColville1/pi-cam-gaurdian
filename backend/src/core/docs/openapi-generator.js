@@ -1,3 +1,12 @@
+import { fileURLToPath } from 'url';
+import { dirname, resolve, join } from 'path';
+import { promises as fs } from 'fs';
+import fg from 'fast-glob';
+import env from '../config/env.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 /**
  * OpenAPI generator that reflects over decorated controllers, converts
  * any attached metadata into an OpenAPI 3.1 document, and emits the
@@ -6,16 +15,12 @@
  * NOTE: This file requires decorator infrastructure to be set up.
  * Currently simplified to work without decorators - expand when decorator system is implemented.
  */
-const path = require('path');
-const fs = require('fs').promises;
-const fg = require('fast-glob');
-const env = require('../config/env');
 
 /**
  * Entry point – discovers operations, composes the OpenAPI document,
  * and persists it to disk.
  */
-async function main() {
+export async function main() {
   try {
     const operations = await collectOperations();
     const paths = buildPathsObject(operations);
@@ -30,9 +35,9 @@ async function main() {
       paths,
     };
 
-    const projectRoot = path.resolve(__dirname, '../../..');
-    const outputDir = path.join(projectRoot, 'docs');
-    const jsonPath = path.join(outputDir, 'openapi.json');
+    const projectRoot = resolve(__dirname, '../../..');
+    const outputDir = join(projectRoot, 'docs');
+    const jsonPath = join(outputDir, 'openapi.json');
 
     await fs.mkdir(outputDir, { recursive: true });
     
@@ -64,7 +69,7 @@ async function collectOperations() {
 /**
  * Transform the collected operations into the OpenAPI `paths` structure.
  */
-function buildPathsObject(operations) {
+export function buildPathsObject(operations) {
   const paths = {};
 
   for (const operation of operations) {
@@ -101,7 +106,7 @@ function buildPathsObject(operations) {
 /**
  * Convert request schema metadata into OpenAPI parameters (query/path).
  */
-function buildParameters(docs) {
+export function buildParameters(docs) {
   const parameters = [];
   if (!docs) return parameters;
 
@@ -119,7 +124,7 @@ function buildParameters(docs) {
 /**
  * Produce an OpenAPI requestBody section when a schema is provided.
  */
-function buildRequestBody(docs) {
+export function buildRequestBody(docs) {
   if (!docs?.request?.body) {
     return undefined;
   }
@@ -143,7 +148,7 @@ function buildRequestBody(docs) {
  * Build the OpenAPI responses map, defaulting to a generic 200 when no
  * explicit metadata is supplied.
  */
-function buildResponses(docs) {
+export function buildResponses(docs) {
   const responses = {};
   const entries =
     docs?.responses && Object.keys(docs.responses).length > 0
@@ -220,7 +225,7 @@ function toOpenApiSchema(schemaLike) {
   if (isZodSchema(schemaLike)) {
     // TODO: Implement zod-to-json-schema conversion when zod is added
     // Requires: zod-to-json-schema package
-    // const { zodToJsonSchema } = require('zod-to-json-schema');
+    // import { zodToJsonSchema } from 'zod-to-json-schema';
     // return zodToJsonSchema(schemaLike, {
     //   target: 'openApi3',
     //   $refStrategy: 'none',
@@ -268,15 +273,7 @@ function resolveRoutePath(basePath, routePath) {
   return `${normalizedBase}${normalizedRoute}`.replace(/\/{2,}/g, '/');
 }
 
-// Run if called directly
-if (require.main === module) {
-  main();
+// Run if called directly (ESM equivalent of require.main === module)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(console.error);
 }
-
-module.exports = {
-  main,
-  buildPathsObject,
-  buildParameters,
-  buildRequestBody,
-  buildResponses,
-};

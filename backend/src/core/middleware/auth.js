@@ -1,7 +1,7 @@
-const { verifyToken } = require('../utils/jwt');
+import { verifyToken } from '../utils/jwt.js';
 
 // Error classes - create simple error classes if they don't exist elsewhere
-class UnauthorizedError extends Error {
+export class UnauthorizedError extends Error {
   constructor(message = 'Unauthorized') {
     super(message);
     this.name = 'UnauthorizedError';
@@ -9,7 +9,7 @@ class UnauthorizedError extends Error {
   }
 }
 
-class ForbiddenError extends Error {
+export class ForbiddenError extends Error {
   constructor(message = 'Forbidden') {
     super(message);
     this.name = 'ForbiddenError';
@@ -25,7 +25,7 @@ const AUTH_COOKIE_NAME = 'auth_token';
  * Sets req.user with decoded token payload
  * @returns {Function} Express middleware function
  */
-function authenticateRequest() {
+export function authenticateRequest() {
   return (req, res, next) => {
     try {
       const token = extractToken(req);
@@ -49,7 +49,7 @@ function authenticateRequest() {
  * Sets req.user if valid token is found
  * @returns {Function} Express middleware function
  */
-function optionalAuth() {
+export function optionalAuth() {
   return (req, res, next) => {
     try {
       const token = extractToken(req);
@@ -72,7 +72,7 @@ function optionalAuth() {
  * @param {string[]} allowedRoles - Array of allowed role strings
  * @returns {Function} Express middleware function
  */
-function requireRole(allowedRoles) {
+export function requireRole(allowedRoles) {
   return (req, res, next) => {
     if (!req.user) {
       return next(new UnauthorizedError());
@@ -110,11 +110,3 @@ function extractToken(req) {
 
   return token;
 }
-
-module.exports = {
-  authenticateRequest,
-  optionalAuth,
-  requireRole,
-  UnauthorizedError,
-  ForbiddenError,
-};

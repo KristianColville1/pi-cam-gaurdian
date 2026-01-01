@@ -1,14 +1,18 @@
-const { DataSource } = require('typeorm');
-const path = require('path');
-const env = require('./env');
+import { DataSource } from 'typeorm';
+import { fileURLToPath } from 'url';
+import { dirname, resolve, join } from 'path';
+import env from './env.js';
 
-const AppDataSource = new DataSource({
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export const AppDataSource = new DataSource({
   type: env.DB_TYPE,
-  database: path.resolve(__dirname, '../../../', env.DB_DATABASE),
+  database: resolve(__dirname, '../../../', env.DB_DATABASE),
   synchronize: env.DB_SYNCHRONIZE,
   logging: env.DB_LOGGING,
   entities: [
-    path.join(__dirname, '../../modules/**/entities/*.entity.js'),
+    join(__dirname, '../../modules/**/entities/*.entity.js'),
   ],
   migrations: [
     // Migrations will be added here
@@ -16,7 +20,7 @@ const AppDataSource = new DataSource({
   ],
 });
 
-async function initializeDatabase() {
+export async function initializeDatabase() {
   if (AppDataSource.isInitialized) {
     return;
   }
@@ -29,8 +33,3 @@ async function initializeDatabase() {
     throw error;
   }
 }
-
-module.exports = {
-  AppDataSource,
-  initializeDatabase,
-};

@@ -1,50 +1,63 @@
-require('reflect-metadata');
-const {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
-} = require('typeorm');
+import 'reflect-metadata';
+import { EntitySchema } from 'typeorm';
 
-@Entity('user')
-class User {
-  @PrimaryGeneratedColumn('uuid')
-  id;
-
-  @Column({ type: 'varchar', length: 255, unique: true })
-  email;
-
-  @Column({ type: 'varchar', length: 255 })
-  password_hash;
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  first_name;
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  last_name;
-
-  @Column({ type: 'boolean', default: false })
-  is_verified;
-
-  @Column({ type: 'boolean', default: true })
-  is_active;
-
-  @Column({ type: 'datetime', nullable: true })
-  last_login_at;
-
-  @Column({ type: 'text', nullable: true, default: '{}' })
-  preferences;
-
-  @CreateDateColumn({ type: 'datetime' })
-  created_at;
-
-  @UpdateDateColumn({ type: 'datetime' })
-  updated_at;
-
-  @DeleteDateColumn({ type: 'datetime', nullable: true })
-  deleted_at;
-}
-
-module.exports = User;
+export const User = new EntitySchema({
+  name: 'User',
+  tableName: 'user',
+  columns: {
+    id: {
+      type: 'varchar',
+      primary: true,
+      generated: 'uuid',
+    },
+    email: {
+      type: 'varchar',
+      length: 255,
+      unique: true,
+    },
+    password_hash: {
+      type: 'varchar',
+      length: 255,
+    },
+    first_name: {
+      type: 'varchar',
+      length: 100,
+      nullable: true,
+    },
+    last_name: {
+      type: 'varchar',
+      length: 100,
+      nullable: true,
+    },
+    is_verified: {
+      type: 'boolean',
+      default: false,
+    },
+    is_active: {
+      type: 'boolean',
+      default: true,
+    },
+    last_login_at: {
+      type: 'datetime',
+      nullable: true,
+    },
+    preferences: {
+      type: 'text',
+      nullable: true,
+      default: '{}',
+    },
+    created_at: {
+      type: 'datetime',
+      createDate: true,
+    },
+    updated_at: {
+      type: 'datetime',
+      updateDate: true,
+    },
+    deleted_at: {
+      type: 'datetime',
+      nullable: true,
+      deleteDate: true,
+    },
+  },
+});

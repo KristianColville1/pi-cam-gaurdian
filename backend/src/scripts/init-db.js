@@ -1,6 +1,4 @@
-require('reflect-metadata');
-const path = require('path');
-const { initializeDatabase, AppDataSource } = require('../core/config/database');
+import { initializeDatabase, AppDataSource } from '../core/config/database.js';
 
 async function initDatabase() {
   try {
@@ -24,4 +22,3 @@ async function initDatabase() {
 }
 
 initDatabase();
-
