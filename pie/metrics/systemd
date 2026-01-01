@@ -1,0 +1,16 @@
+[Unit]
+Description=Metrics Python Service
+After=network.target
+
+[Service]
+Type=simple
+User=kristian
+WorkingDirectory=/home/kristian/Documents
+ExecStart=/usr/bin/python3 /home/kristian/Documents/metrics/metrics.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
