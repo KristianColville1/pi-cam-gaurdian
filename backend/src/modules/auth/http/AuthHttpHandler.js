@@ -13,7 +13,6 @@ class AuthHttpHandler {
   async login(req, res) {
     try {
       const { email, password } = req.body;
-      console.log('Login request received:', { email, password });
 
       if (!email || !password) {
         return res.status(400).json({ error: 'Email and password are required' });
