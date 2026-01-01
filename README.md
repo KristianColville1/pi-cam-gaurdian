@@ -46,6 +46,7 @@ PiCam Guardian is an IoT-based smart home monitoring prototype that provides rem
 * [Development &amp; Deployment](#development--deployment)
   * [Version Control](#version-control)
   * [Cloning the Repository](#cloning-this-repository)
+  * [Server Setup](#server-setup)
   * [Setting Up MQTT Mosquitto](#setting-up-mqtt-mosquitto)
 * [Credits](#credits)
 
@@ -284,6 +285,66 @@ Instructions:
 6. Open a new terminal window in your IDE.
 7. Enter the following command exactly: `git clone the-URL-you-copied-from-GitHub`.
 8. Press Enter.
+
+### Server Setup
+
+**Oracle Cloud Free Tier Setup**
+
+The cloud infrastructure for PiCam Guardian is hosted on Oracle Cloud Infrastructure (OCI) using the free tier offering.
+
+**Initial Setup Process:**
+
+1. **Oracle Cloud Account Creation**
+   - Signed up for Oracle Cloud free tier account
+   - Accessed the Oracle Cloud Console
+
+   ![Oracle Cloud Signup](docs/dev-log/image/30-12-2025/1767105717858.png)
+   ![Oracle Cloud Console](docs/dev-log/image/30-12-2025/1767105930294.png)
+
+2. **Instance Creation**
+   - Created a compute instance with default settings
+   - Configured necessary settings and resolved initial setup errors
+
+   ![Instance Creation](docs/dev-log/image/30-12-2025/1767106256048.png)
+   ![Instance Configuration](docs/dev-log/image/30-12-2025/1767106606821.png)
+
+3. **SSH Key Configuration**
+   - Encountered SSH key download error during initial setup
+   - Downloaded SSH keys from networking section
+
+   ![SSH Key Error](docs/dev-log/image/30-12-2025/1767106689319.png)
+   ![SSH Key Download](docs/dev-log/image/30-12-2025/1767106724087.png)
+
+4. **Instance Details**
+   - Instance created successfully
+   - Obtained FQDN (Fully Qualified Domain Name) for the instance
+
+   ![Instance Created](docs/dev-log/image/30-12-2025/1767106808077.png)
+   ![FQDN](docs/dev-log/image/30-12-2025/1767106938355.png)
+
+5. **Network Configuration**
+   - Configured local SSH keys for connection
+   - Created and attached public IP address to VNIC (Virtual Network Interface Card)
+   - Created reserved IP first, then attached to VNIC for public access
+
+   ![SSH Key Configuration](docs/dev-log/image/30-12-2025/1767107679358.png)
+   ![Create Public IP](docs/dev-log/image/30-12-2025/1767108282010.png)
+   ![Attach IP to VNIC](docs/dev-log/image/30-12-2025/1767108862519.png)
+   ![Reserved IP Attached](docs/dev-log/image/30-12-2025/1767109072490.png)
+
+6. **SSH Connection Verification**
+   - Successfully tested SSH connection using private key
+   - Confirmed remote access to the server
+
+   ![SSH Connection Success](docs/dev-log/image/30-12-2025/1767109200715.png)
+
+**Configuration Notes:**
+
+- Initially tested with Oracle Linux, but performance was too slow
+- Switched to Ubuntu 22.04 LTS for better performance and familiarity
+- Changed from shared compute to dedicated VPS for improved speed
+- After confirming SSH access, the initial instance was deleted and recreated with Ubuntu on dedicated VPS
+- The server now runs Ubuntu on a dedicated VPS instance on Oracle Cloud free tier
 
 ### Setting Up MQTT Mosquitto
 
