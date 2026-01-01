@@ -12,8 +12,8 @@ const __dirname = dirname(__filename);
  * any attached metadata into an OpenAPI 3.1 document, and emits the
  * resulting JSON under `backend/docs/`.
  * 
- * NOTE: This file requires decorator infrastructure to be set up.
- * Currently simplified to work without decorators - expand when decorator system is implemented.
+ * ?NOTE: This file requires decorator infrastructure to be set up.
+ * Currently simplified to work without decorators - expand when decorator system is implemented properly and all working.
  */
 
 /**
@@ -215,37 +215,16 @@ function convertSchemaToParameters(schemaLike, location) {
 }
 
 /**
- * Normalise an arbitrary schema reference (Zod or plain object)
- * into a JSON schema fragment that OpenAPI understands.
+ * Normalise a schema reference (plain object) into a JSON schema fragment that OpenAPI understands.
  */
 function toOpenApiSchema(schemaLike) {
   if (!schemaLike) return undefined;
-
-  // Check if it's a Zod schema (has safeParse method)
-  if (isZodSchema(schemaLike)) {
-    // TODO: Implement zod-to-json-schema conversion when zod is added
-    // Requires: zod-to-json-schema package
-    // import { zodToJsonSchema } from 'zod-to-json-schema';
-    // return zodToJsonSchema(schemaLike, {
-    //   target: 'openApi3',
-    //   $refStrategy: 'none',
-    // });
-    console.warn('Zod schema conversion not implemented - requires zod-to-json-schema package');
-    return undefined;
-  }
 
   if (isPlainObject(schemaLike)) {
     return schemaLike;
   }
 
   return undefined;
-}
-
-/**
- * Check if a value is a Zod schema – we only rely on the presence of `safeParse`.
- */
-function isZodSchema(value) {
-  return typeof value === 'object' && value !== null && 'safeParse' in value && typeof value.safeParse === 'function';
 }
 
 /**
