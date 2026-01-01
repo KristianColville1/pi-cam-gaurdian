@@ -7,13 +7,9 @@ module.exports = {
   NODE_ENV: process.env.NODE_ENV || 'development',
 
   // Database
-  DB_TYPE: process.env.DB_TYPE || 'mysql',
-  DB_HOST: process.env.DB_HOST || 'localhost',
-  DB_PORT: process.env.DB_PORT || 3306,
-  DB_USERNAME: process.env.DB_USERNAME || 'root',
-  DB_PASSWORD: process.env.DB_PASSWORD || '',
-  DB_DATABASE: process.env.DB_DATABASE || 'picam_guardian',
-  DB_SYNCHRONIZE: process.env.DB_SYNCHRONIZE === 'true' || false,
+  DB_TYPE: process.env.DB_TYPE || 'better-sqlite3',
+  DB_DATABASE: process.env.DB_DATABASE || './db.sqlite3',
+  DB_SYNCHRONIZE: process.env.DB_SYNCHRONIZE === 'true' || true,
   DB_LOGGING: process.env.DB_LOGGING === 'true' || false,
 
   // JWT

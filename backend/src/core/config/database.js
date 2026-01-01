@@ -1,18 +1,14 @@
 const { DataSource } = require('typeorm');
+const path = require('path');
 const env = require('./env');
 
 const AppDataSource = new DataSource({
   type: env.DB_TYPE,
-  host: env.DB_HOST,
-  port: env.DB_PORT,
-  username: env.DB_USERNAME,
-  password: env.DB_PASSWORD,
-  database: env.DB_DATABASE,
+  database: path.resolve(__dirname, '../../../', env.DB_DATABASE),
   synchronize: env.DB_SYNCHRONIZE,
   logging: env.DB_LOGGING,
   entities: [
-    // Entities will be added here
-    // Example: require('../../entities/User.js')
+    path.join(__dirname, '../../modules/**/entities/*.entity.js'),
   ],
   migrations: [
     // Migrations will be added here

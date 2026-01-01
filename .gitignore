@@ -76,3 +76,6 @@ logs/
 tmp/
 temp/
 *.tmp
+
+
+db.sqlite3
