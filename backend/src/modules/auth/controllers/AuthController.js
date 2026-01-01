@@ -4,47 +4,41 @@ import { applyRoute } from '../../../core/decorators/route.js';
 import { applyApiDoc } from '../../../core/decorators/docs.js';
 import { authenticateRequest } from '../../../core/middleware/auth.js';
 
-// Note: AuthHttpHandler and validators need to be created/imported when available
-// import AuthHttpHandler from '../http/AuthHttpHandler.js';
-// import { LoginSchema, RegisterSchema } from '../../../shared/validators/auth.schemas.js';
+import AuthHttpHandler from '../http/AuthHttpHandler.js';
 
 /**
  * Declarative HTTP surface for authentication endpoints.
  * Each method delegates to the HTTP handler so controllers stay lean.
  */
-// const authHttpHandler = new AuthHttpHandler();
+const authHttpHandler = new AuthHttpHandler();
 
 class AuthController {
   /**
    * POST /auth/login – authenticate via credentials and issue cookie.
    */
   async login(req, res) {
-    // TODO: Implement or delegate to authHttpHandler.login(req, res);
-    res.status(501).json({ error: 'Not implemented' });
+    return authHttpHandler.login(req, res);
   }
 
   /**
    * POST /auth/register – create an account and start a session.
    */
   async register(req, res) {
-    // TODO: Implement or delegate to authHttpHandler.register(req, res);
-    res.status(501).json({ error: 'Not implemented' });
+    return authHttpHandler.register(req, res);
   }
 
   /**
    * POST /auth/logout – clear the auth cookie for the active user.
    */
   async logout(req, res) {
-    // TODO: Implement or delegate to authHttpHandler.logout(req, res);
-    res.status(501).json({ error: 'Not implemented' });
+    return authHttpHandler.logout(req, res);
   }
 
   /**
    * GET /auth/me – get current authenticated user profile.
    */
   async getCurrentUser(req, res) {
-    // TODO: Implement or delegate to authHttpHandler.getCurrentUser(req, res);
-    res.status(501).json({ error: 'Not implemented' });
+    return authHttpHandler.getCurrentUser(req, res);
   }
 }
 

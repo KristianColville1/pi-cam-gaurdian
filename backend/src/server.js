@@ -17,6 +17,8 @@ async function bootstrap() {
 
   const app = express();
 
+  // Parse JSON bodies
+  app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
   
@@ -26,7 +28,7 @@ async function bootstrap() {
   // CORS Configuration - Allow frontend to send cookies
   app.use(
     cors({
-      origin: env.FRONTEND_URL || '*',
+      origin: 'http://localhost:5173',
       credentials: true, // Allow cookies to be sent
       methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
