@@ -36,9 +36,10 @@ function SensorDataTable() {
     }
 
     function initializeMQTT() {
-      // MQTT Configuration
+      // MQTT Configuration - connect through nginx proxy
       const MQTT_BROKER = 'pi-guardian.kcolville.com';
-      const MQTT_PORT = 9001; // WebSocket port
+      const MQTT_PORT = 9001; // HTTPS port (nginx handles SSL termination)
+      const MQTT_PATH = '/mqtt'; // Path matches nginx location /mqtt/
       const MQTT_TOPIC = 'sensors/metrics';
 
       // eslint-disable-next-line no-undef
@@ -47,11 +48,12 @@ function SensorDataTable() {
         return;
       }
 
-      // Create MQTT client
+      // Create MQTT client - constructor: (host, port, path, clientId)
       // eslint-disable-next-line no-undef
       client = new Paho.Client(
         MQTT_BROKER,
         MQTT_PORT,
+        MQTT_PATH,
         'web_client_' + Math.random().toString(16).substr(2, 8)
       );
 
@@ -73,14 +75,11 @@ function SensorDataTable() {
           console.error('Error parsing MQTT message:', e);
         }
       };
-
-      // Connect to MQTT broker via WebSocket (WSS for HTTPS)
-      // Use secure WebSocket (WSS) when the page is served over HTTPS
-      const isSecure = window.location.protocol === 'https:';
       
+      const isSecure = window.location.protocol === 'https:';
       client.connect({
         onSuccess: function () {
-          console.log('Connected to MQTT broker');
+          console.log('Connected to MQTT broker via nginx proxy');
           client.subscribe(MQTT_TOPIC);
         },
         onFailure: function (error) {
