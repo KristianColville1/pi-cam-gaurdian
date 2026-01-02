@@ -8,12 +8,11 @@ This document describes the database schema, data models, relationships, and sto
 
 ## Table of Contents
 
-- [Database Schema](DDD/schema.md)
-- [Entity Relationships](DDD/relationships.md)
-- [Data Models](DDD/models.md)
-- [Tables](DDD/tables.md)
-- [Indexes](DDD/indexes.md)
-- [Constraints](DDD/constraints.md)
+- Purpose
+- System Description
+- Conceptual Data Model
+- Logical Data Model
+- Credits
 
 ---
 
@@ -26,4 +25,3 @@ This document describes the database schema, data models, relationships, and sto
 **PiCam Guardian** | [Repository](https://github.com/KristianColville1/pi-cam-gaurdian)
 
 <!-- Footer Component: README/footer.md -->
-

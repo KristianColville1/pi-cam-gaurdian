@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { Navbar, Nav, Container, Button } from 'react-bootstrap';
+import { Navbar, Nav, Container, Button, ButtonGroup } from 'react-bootstrap';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { FaMoon, FaSun } from 'react-icons/fa';
 import { useAuth } from '@hooks/useAuth';
+import { useTheme } from '@hooks/useTheme';
+import Brand from '@components/atoms/Brand';
 import LoginModal from './LoginModal';
 
 function Navigation() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   const navLinks = [
@@ -21,14 +25,12 @@ function Navigation() {
 
   return (
     <>
-      <Navbar bg="dark" variant="dark" expand="lg">
+      <Navbar expand="lg" className="border-bottom">
         <Container>
-          <Navbar.Brand as={Link} to="/">
-            PiCam Guardian
-          </Navbar.Brand>
+          <Brand as={Link} to="/" showLogo={true} />
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="ms-auto">
+            <Nav className="ms-auto align-items-center">
               {navLinks.map((link) => (
                 <Nav.Link
                   key={link.path}
@@ -39,9 +41,19 @@ function Navigation() {
                   {link.label}
                 </Nav.Link>
               ))}
+              <ButtonGroup className="ms-2">
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  onClick={toggleTheme}
+                  title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+                >
+                  {theme === 'light' ? <FaMoon /> : <FaSun />}
+                </Button>
+              </ButtonGroup>
               {!isAuthenticated && (
                 <Button
-                  variant="outline-light"
+                  variant="primary"
                   className="ms-2"
                   onClick={() => setShowLoginModal(true)}
                 >

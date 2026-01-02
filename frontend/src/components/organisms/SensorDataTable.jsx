@@ -20,6 +20,7 @@ function SensorDataTable() {
     let script = null;
 
     // Check if Paho is already loaded
+    // eslint-disable-next-line no-undef
     if (typeof Paho !== 'undefined' && typeof Paho.Client !== 'undefined') {
       initializeMQTT();
     } else {
@@ -40,12 +41,14 @@ function SensorDataTable() {
       const MQTT_PORT = 9001; // WebSocket port
       const MQTT_TOPIC = 'sensors/metrics';
 
+      // eslint-disable-next-line no-undef
       if (typeof Paho === 'undefined' || typeof Paho.Client === 'undefined') {
         console.error('Paho MQTT library failed to load');
         return;
       }
 
       // Create MQTT client
+      // eslint-disable-next-line no-undef
       client = new Paho.Client(
         MQTT_BROKER,
         MQTT_PORT,
@@ -125,7 +128,7 @@ function SensorDataTable() {
             </tr>
           </thead>
           <tbody>
-            {sensorRows.map((row, index) => (
+            {sensorRows.map((row) => (
               <tr key={row.key}>
                 <td>{row.label}</td>
                 <td>{metrics[row.key]}</td>
