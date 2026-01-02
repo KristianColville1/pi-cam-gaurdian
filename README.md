@@ -113,13 +113,40 @@ The system is designed to be adaptable for use cases such as:
 
 ## Design
 
-### Color Scheme
+PiCam Guardian uses a modern, responsive web design approach built with React and Bootstrap, following atomic design principles for component organization.
 
-### Typography
+**Technology Stack:**
 
-### Layout
+- **React 19** - Modern React framework with hooks and context API
+- **Vite** - Fast build tool and development server
+- **React Bootstrap 2** - Bootstrap 5 components for React
+- **React Router** - Client-side routing for single-page application
+- **React Icons** - Icon library for UI elements
 
-### Icons
+**Design Architecture:**
+
+The frontend follows **atomic design principles**, organizing components into hierarchical levels:
+
+- **Atoms** - Smallest reusable components (e.g., Brand component)
+- **Molecules** - Simple component combinations
+- **Organisms** - Complex UI components (Navigation, Footer, LoginModal, VideoStream, SensorDataTable)
+- **Templates** - Page layout structures (PageTemplate)
+- **Pages** - Complete page implementations (Home, Portal)
+
+**Styling Approach:**
+
+- **Bootstrap 5** - Utility-first CSS framework for responsive layout and components
+- **CSS Variables** - Custom properties for theme management (light/dark mode)
+- **Responsive Design** - Mobile-first approach with Bootstrap breakpoints
+- **Theme Support** - Light and dark mode with user preference persistence
+
+**Key Design Features:**
+
+- Clean, minimal interface focused on functionality
+- Real-time data visualization with live video and sensor metrics
+- Accessible authentication flow with modal-based login
+- Protected routes for authenticated content
+- Consistent navigation and footer across all pages
 
 ## Technologies & Tools
 

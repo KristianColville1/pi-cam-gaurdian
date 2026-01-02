@@ -8,11 +8,10 @@ This document describes the database schema, data models, relationships, and sto
 
 ## Table of Contents
 
-- Purpose
-- System Description
-- Conceptual Data Model
-- Logical Data Model
-- Credits
+- [Purpose](purpose.md)
+- [System Description](system-description.md)
+- [Conceptual Data Model](conceptual-data-model.md)
+- [Logical Data Model](logical-data-model.md)
 
 ---
 
