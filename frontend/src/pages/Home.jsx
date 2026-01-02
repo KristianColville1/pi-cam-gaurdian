@@ -6,7 +6,7 @@ function Home() {
     <Container className="py-5">
       <Row>
         <Col>
-          <h1 className="display-4 mb-4">Welcome to PiCam Guardian</h1>
+          <h1 className="display-4 mb-4">Welcome to Pi Guardian</h1>
           <p className="lead">
             Raspberry Pi-based remote monitoring system for camera feeds and sensor data.
           </p>

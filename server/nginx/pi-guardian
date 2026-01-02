@@ -1,0 +1,26 @@
+server {
+    listen 80;
+    server_name pi-guardian.kcolville.com;
+
+    root /home/ubuntu/pi-guardian/frontend/dist;  # Frontend static
+    index index.html;
+
+    # Serve frontend static files
+    location / {
+        try_files $uri /index.html;
+    }
+
+    # Proxy API requests to backend Node app
+    location /api/ {
+        proxy_pass http://localhost:3000/;   # Backend process
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # logs
+    access_log /var/log/nginx/pi-guardian.access.log;
+    error_log /var/log/nginx/pi-guardian.error.log;
+}
