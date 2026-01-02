@@ -19,6 +19,24 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 
+    location /cam/ {
+        proxy_pass http://localhost:8889; # Stream server
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location /sensors/ {
+        proxy_pass http://localhost:9001; # Mediamtx
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
     # logs
     access_log /var/log/nginx/pi-guardian.access.log;
     error_log /var/log/nginx/pi-guardian.error.log;

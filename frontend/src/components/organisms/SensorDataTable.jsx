@@ -74,7 +74,10 @@ function SensorDataTable() {
         }
       };
 
-      // Connect to MQTT broker via WebSocket
+      // Connect to MQTT broker via WebSocket (WSS for HTTPS)
+      // Use secure WebSocket (WSS) when the page is served over HTTPS
+      const isSecure = window.location.protocol === 'https:';
+      
       client.connect({
         onSuccess: function () {
           console.log('Connected to MQTT broker');
@@ -83,7 +86,7 @@ function SensorDataTable() {
         onFailure: function (error) {
           console.error('Failed to connect to MQTT broker:', error.errorMessage);
         },
-        useSSL: false,
+        useSSL: isSecure,
       });
     }
 
