@@ -1,5 +1,4 @@
 server {
-    listen 80;
     server_name pi-guardian.kcolville.com;
 
     root /home/ubuntu/pi-guardian/frontend/dist;  # Frontend static
@@ -12,7 +11,7 @@ server {
 
     # Proxy API requests to backend Node app
     location /api/ {
-        proxy_pass http://localhost:3000/;   # Backend process
+        proxy_pass http://localhost:3000;   # Backend process
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -23,4 +22,25 @@ server {
     # logs
     access_log /var/log/nginx/pi-guardian.access.log;
     error_log /var/log/nginx/pi-guardian.error.log;
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/pi-guardian.kcolville.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/pi-guardian.kcolville.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
 }
+server {
+    if ($host = pi-guardian.kcolville.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80;
+    server_name pi-guardian.kcolville.com;
+    return 404; # managed by Certbot
+
+
+}
+
+

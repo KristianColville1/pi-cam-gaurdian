@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from 'react-bootstrap';
 
 function VideoStream() {
-  const STREAM_URL = 'http://pi-guardian.kcolville.com:8889/cam';
+  const STREAM_URL = 'https://pi-guardian.kcolville.com:8889/cam';
 
   return (
     <Card className="shadow-sm">
