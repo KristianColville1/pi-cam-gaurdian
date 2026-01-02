@@ -54,11 +54,62 @@ PiCam Guardian is an IoT-based smart home monitoring prototype that provides rem
 
 ## Project Goals
 
+PiCam Guardian aims to create a smart home monitoring system that provides real-time remote visibility into a physical space. The primary goal is to develop a low-latency camera streaming solution that enables remote monitoring with near-instantaneous feedback, making it feel like looking through a window rather than viewing a delayed video feed.
+
+**Core Objectives:**
+
+- **Remote Camera Access**: Primary goal is to access the camera feed remotely and see what's happening in real-time with minimal latency
+- **Low-Latency Streaming**: Achieve sub-300ms latency for video streaming, making remote monitoring feel natural and responsive
+- **Environmental Monitoring**: Collect and display real-time sensor data (temperature, humidity, pressure, motion) alongside video feed
+- **Smart Home Integration**: Build a foundation for smart home safety and monitoring applications
+- **Accessibility**: Create a system that can be used by various users, including elderly relatives who may benefit from remote monitoring solutions
+
 ### Personal Goals
+
+As the primary developer and intended user of PiCam Guardian, this project serves multiple purposes:
+
+- **Technical Learning**: Gain hands-on experience with IoT development, cloud infrastructure, networking, and real-time communication protocols
+- **Practical Application**: Build a working system that solves a real need for remote monitoring and visibility
+- **Performance Optimization**: Achieve and demonstrate low-latency streaming capabilities, with current implementation achieving ~220ms latency - effectively making it "may as well be a mirror" in terms of responsiveness
+- **System Integration**: Learn to integrate multiple technologies (Raspberry Pi, cloud services, web technologies, protocols like RTSP, WebRTC, MQTT) into a cohesive system
+- **Production Deployment**: Experience the full software development lifecycle from prototyping to deployment on cloud infrastructure
 
 ## User Experience (UX)
 
+PiCam Guardian is designed to provide an intuitive, real-time monitoring experience that feels natural and responsive. The system prioritizes low latency and clear visual feedback to create a sense of presence and immediacy when monitoring a remote location.
+
+**Core User Experience Principles:**
+
+- **Immediate Feedback**: With ~220ms latency achieved, the video feed feels nearly instant, creating a mirror-like experience rather than traditional delayed video streaming
+- **Real-Time Information**: Both video and sensor data update in real-time, providing comprehensive situational awareness
+- **Simple Interface**: Clean, accessible web interface that doesn't require specialized software or complex setup
+- **Remote Accessibility**: Access the system from anywhere with an internet connection through a standard web browser
+- **Reliable Connection**: Robust error handling and automatic reconnection ensure continuous monitoring capabilities
+
 ### Target Audience
+
+**Primary Audience: Developer/Owner**
+
+As the primary intended user, the system is designed for personal use to:
+- Monitor a space remotely with real-time video feed
+- Keep track of environmental conditions and sensor readings
+- Have peace of mind knowing what's happening in a monitored location
+- Experience the benefits of a low-latency monitoring system for personal or professional use
+
+**Secondary Audience: Elderly Care & Family Monitoring**
+
+The system is designed to be adaptable for use cases such as:
+- **Elderly Relatives**: Family members can remotely monitor elderly relatives to check on their well-being, see daily activity, and ensure safety
+- **Pet Monitoring**: Check on pets when away from home
+- **Home Security**: Monitor home entrances, common areas, or specific rooms for security purposes
+- **Caregivers**: Professional or family caregivers can remotely check on individuals who need periodic monitoring
+
+**User Requirements:**
+
+- Basic web browser access (no specialized software needed)
+- Internet connection (broadband recommended for optimal video quality)
+- Mobile or desktop device (system is responsive and works on various screen sizes)
+- No technical expertise required for end users (system setup is done by the developer/admin)
 
 ## Design
 
@@ -346,6 +397,156 @@ The cloud infrastructure for PiCam Guardian is hosted on Oracle Cloud Infrastruc
 - Changed from shared compute to dedicated VPS for improved speed
 - After confirming SSH access, the initial instance was deleted and recreated with Ubuntu on dedicated VPS
 - The server now runs Ubuntu on a dedicated VPS instance on Oracle Cloud free tier
+
+### Nginx & SSL Configuration
+
+Nginx serves as a reverse proxy for the frontend, backend API, and WebSocket connections. SSL/TLS certificates are managed through Let's Encrypt using Certbot.
+
+**Installation:**
+
+```bash
+sudo apt update
+sudo apt install nginx -y
+```
+
+![Nginx Installation](docs/dev-log/image/02-01-2026/1767357644381.png)
+
+**Initial Configuration:**
+
+1. **Copy Frontend and Backend Files**
+
+   Ensure the frontend build (`dist` folder) and backend code are on the server:
+
+   ![Server Files](docs/dev-log/image/02-01-2026/1767362518558.png)
+
+2. **Create Nginx Configuration**
+
+   Navigate to the sites-available directory and create a configuration file:
+
+   ```bash
+   cd /etc/nginx/sites-available
+   sudo nano pi-guardian
+   ```
+
+   ![Sites Available Directory](docs/dev-log/image/02-01-2026/1767362732554.png)
+
+3. **Open Required Ports**
+
+   Configure Oracle Cloud security list to allow HTTP (port 80) and HTTPS (port 443):
+
+   ![Security List Configuration](docs/dev-log/image/02-01-2026/1767363155246.png)
+
+   Configure iptables on the server:
+
+   ```bash
+   sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+   sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+   ```
+
+   ![Iptables Configuration](docs/dev-log/image/02-01-2026/1767363276751.png)
+
+4. **Basic HTTP Configuration**
+
+   Initial nginx configuration for serving frontend and proxying backend:
+
+   ```nginx
+   server {
+       listen 80;
+       server_name pi-guardian.kcolville.com;
+
+       root /home/ubuntu/pi-guardian/frontend/dist;
+       index index.html;
+
+       location / {
+           try_files $uri /index.html;
+       }
+
+       location /api/ {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+   ```
+
+   Test the configuration and enable the site:
+
+   ```bash
+   sudo nginx -t
+   sudo ln -s /etc/nginx/sites-available/pi-guardian /etc/nginx/sites-enabled/
+   sudo systemctl restart nginx
+   ```
+
+   ![HTTP Working](docs/dev-log/image/02-01-2026/1767363826254.png)
+
+**SSL/TLS Configuration with Certbot:**
+
+1. **Install Certbot**
+
+   ```bash
+   sudo apt install certbot python3-certbot-nginx -y
+   ```
+
+2. **Obtain SSL Certificate**
+
+   Run Certbot to automatically configure SSL for your domain:
+
+   ```bash
+   sudo certbot --nginx -d pi-guardian.kcolville.com
+   ```
+
+   ![Certbot Configuration](docs/dev-log/image/02-01-2026/1767365097249.png)
+
+   Select option 2 to redirect HTTP traffic to HTTPS automatically:
+
+   ![Certbot Redirect Option](docs/dev-log/image/02-01-2026/1767365349025.png)
+
+3. **Verify SSL Configuration**
+
+   Certbot automatically updates your nginx configuration. Verify the changes:
+
+   ![Certbot Configuration Success](docs/dev-log/image/02-01-2026/1767365433954.png)
+
+**Common Issues & Solutions:**
+
+1. **Port Configuration Error**
+
+   Ensure port 443 (not 433) is opened in the Oracle Cloud security list:
+
+   ![Port Fix](docs/dev-log/image/02-01-2026/1767365655244.png)
+
+2. **HTTPS Working**
+
+   After fixing port configuration, the site should load over HTTPS:
+
+   ![HTTPS Success](docs/dev-log/image/02-01-2026/1767365712892.png)
+
+3. **WebSocket Proxy Configuration**
+
+   For MQTT WebSocket connections, ensure proper upgrade headers:
+
+   ```nginx
+   location /mqtt {
+       proxy_pass http://127.0.0.1:9001;
+       proxy_http_version 1.1;
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection "Upgrade";
+       proxy_set_header Host $host;
+       proxy_set_header X-Real-IP $remote_addr;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header X-Forwarded-Proto $scheme;
+   }
+   ```
+
+**Configuration Notes:**
+
+- Certbot automatically manages SSL certificate renewal
+- The configuration file is updated to include SSL settings and HTTP to HTTPS redirect
+- All traffic is automatically redirected to HTTPS for security
+- WebSocket connections require proper upgrade headers for WSS (WebSocket Secure) to work correctly
 
 ### Setting Up MQTT Mosquitto
 
