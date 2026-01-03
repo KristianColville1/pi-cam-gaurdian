@@ -80,3 +80,5 @@ temp/
 
 
 db.sqlite3
+
+.venv

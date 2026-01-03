@@ -28,7 +28,6 @@ PiCam Guardian is an IoT-based smart home monitoring prototype that provides rem
 * [System Design](#system-design)
 * [Database Design](#database-design)
 * [Development Log](#development-log)
-* [Data](#data)
 * [Testing](#testing)
 * [Bugs](#bugs)
   * [Bug Details](#bug-details)
@@ -91,6 +90,7 @@ PiCam Guardian is designed to provide an intuitive, real-time monitoring experie
 **Primary Audience: Developer/Owner**
 
 As the primary intended user, the system is designed for personal use to:
+
 - Monitor a space remotely with real-time video feed
 - Keep track of environmental conditions and sensor readings
 - Have peace of mind knowing what's happening in a monitored location
@@ -99,6 +99,7 @@ As the primary intended user, the system is designed for personal use to:
 **Secondary Audience: Elderly Care & Family Monitoring**
 
 The system is designed to be adaptable for use cases such as:
+
 - **Elderly Relatives**: Family members can remotely monitor elderly relatives to check on their well-being, see daily activity, and ensure safety
 - **Pet Monitoring**: Check on pets when away from home
 - **Home Security**: Monitor home entrances, common areas, or specific rooms for security purposes
@@ -220,8 +221,6 @@ These logs are journal-style entries intended to give readers insight into the d
 [View Development Log Index →](docs/dev-log/index.md)
 
 ---
-
-## Data
 
 ## Testing
 
@@ -470,7 +469,6 @@ sudo apt install nginx -y
    Ensure the frontend build (`dist` folder) and backend code are on the server:
 
    ![Server Files](docs/dev-log/image/02-01-2026/1767362518558.png)
-
 2. **Create Nginx Configuration**
 
    Navigate to the sites-available directory and create a configuration file:
@@ -481,7 +479,6 @@ sudo apt install nginx -y
    ```
 
    ![Sites Available Directory](docs/dev-log/image/02-01-2026/1767362732554.png)
-
 3. **Open Required Ports**
 
    Configure Oracle Cloud security list to allow HTTP (port 80) and HTTPS (port 443):
@@ -496,7 +493,6 @@ sudo apt install nginx -y
    ```
 
    ![Iptables Configuration](docs/dev-log/image/02-01-2026/1767363276751.png)
-
 4. **Basic HTTP Configuration**
 
    Initial nginx configuration for serving frontend and proxying backend:
@@ -541,7 +537,6 @@ sudo apt install nginx -y
    ```bash
    sudo apt install certbot python3-certbot-nginx -y
    ```
-
 2. **Obtain SSL Certificate**
 
    Run Certbot to automatically configure SSL for your domain:
@@ -555,7 +550,6 @@ sudo apt install nginx -y
    Select option 2 to redirect HTTP traffic to HTTPS automatically:
 
    ![Certbot Redirect Option](docs/dev-log/image/02-01-2026/1767365349025.png)
-
 3. **Verify SSL Configuration**
 
    Certbot automatically updates your nginx configuration. Verify the changes:
@@ -569,13 +563,11 @@ sudo apt install nginx -y
    Ensure port 443 (not 433) is opened in the Oracle Cloud security list:
 
    ![Port Fix](docs/dev-log/image/02-01-2026/1767365655244.png)
-
 2. **HTTPS Working**
 
    After fixing port configuration, the site should load over HTTPS:
 
    ![HTTPS Success](docs/dev-log/image/02-01-2026/1767365712892.png)
-
 3. **WebSocket Proxy Configuration**
 
    For MQTT WebSocket connections, ensure proper upgrade headers:
