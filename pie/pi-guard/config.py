@@ -19,7 +19,7 @@ class Settings:
         
         # MQTT Configuration
         self.MQTT_BROKER: str = os.getenv("MQTT_BROKER", "pi-guardian.kcolville.com")
-        self.MQTT_PORT: int = int(os.getenv("MQTT_PORT", "1883"))
+        self.MQTT_PORT: int = int(os.getenv("MQTT_PORT", "9001"))  # WebSocket port (default)
         self.MQTT_TOPIC_PREFIX: str = os.getenv("MQTT_TOPIC_PREFIX", "sensors")
         self.MQTT_METRICS_TOPIC: str = f"{self.MQTT_TOPIC_PREFIX}/metrics"
         self.MQTT_CLIENT_ID: Optional[str] = os.getenv("MQTT_CLIENT_ID")
