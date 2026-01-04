@@ -6,6 +6,7 @@ import { useAuth } from '@hooks/useAuth';
 import { useTheme } from '@hooks/useTheme';
 import Brand from '@components/atoms/Brand';
 import HamburgerMenu from '@components/atoms/HamburgerMenu/HamburgerMenu';
+import NavigationOffcanvas from '@components/molecules/NavigationOffcanvas';
 import LoginModal from './LoginModal';
 
 function Navigation() {
@@ -24,19 +25,21 @@ function Navigation() {
     navLinks.push({ path: '/portal', label: 'Portal' });
   }
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOffcanvasOpen, setIsOffcanvasOpen] = useState(false);
 
   return (
     <>
-      <Navbar expand="lg" className="border-bottom" expanded={isOpen} onToggle={setIsOpen}>
+      <Navbar expand="lg" className="border-bottom">
         <Container>
           <Brand as={Link} to="/" showLogo={true} />
-          <HamburgerMenu
-            isOpen={isOpen}
-            onClick={() => setIsOpen(!isOpen)}
-            ariaControls="basic-navbar-nav"
-          />
-          <Navbar.Collapse id="basic-navbar-nav">
+          <div className="d-flex d-lg-none">
+            <HamburgerMenu
+              isOpen={isOffcanvasOpen}
+              onClick={() => setIsOffcanvasOpen(!isOffcanvasOpen)}
+              ariaControls="navigation-offcanvas"
+            />
+          </div>
+          <Navbar.Collapse id="basic-navbar-nav" className="d-none d-lg-flex">
             <Nav className="ms-auto align-items-center">
               {navLinks.map((link) => (
                 <Nav.Link
@@ -71,6 +74,11 @@ function Navigation() {
           </Navbar.Collapse>
         </Container>
       </Navbar>
+      <NavigationOffcanvas
+        show={isOffcanvasOpen}
+        onHide={() => setIsOffcanvasOpen(false)}
+        onLoginClick={() => setShowLoginModal(true)}
+      />
       <LoginModal
         show={showLoginModal}
         onHide={() => setShowLoginModal(false)}

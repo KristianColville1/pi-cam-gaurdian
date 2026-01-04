@@ -1,0 +1,10 @@
+/* NavigationOffcanvas positioning - appears below navbar */
+.offcanvas {
+  top: 56px !important; /* Height of navbar, adjust if navbar height changes */
+  z-index: 1030; /* Below navbar (1040) but above content */
+}
+
+.offcanvas-backdrop {
+  display: none !important; /* Hide backdrop completely */
+}
+

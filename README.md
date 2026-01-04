@@ -137,6 +137,7 @@ The frontend follows **atomic design principles**, organizing components into hi
 **Styling Approach:**
 
 - **Bootstrap 5** - Utility-first CSS framework for responsive layout and components
+- **Hamburgers** - Animated hamburger menu icons library (collapse variant) for navigation
 - **CSS Variables** - Custom properties for theme management (light/dark mode)
 - **Responsive Design** - Mobile-first approach with Bootstrap breakpoints
 - **Theme Support** - Light and dark mode with user preference persistence
@@ -150,6 +151,52 @@ The frontend follows **atomic design principles**, organizing components into hi
 - Consistent navigation and footer across all pages
 
 ## Technologies & Tools
+
+**Frontend Technologies:**
+- React 19
+- Vite
+- React Bootstrap 2
+- React Router
+- React Icons
+- Axios
+- Hamburgers
+- Bootstrap 5
+
+**Backend Technologies:**
+- Node.js
+- Express.js
+- TypeORM
+- SQLite (Better SQLite3)
+- JSON Web Token (JWT)
+- Bcrypt
+- CORS
+- Dotenv
+
+**Raspberry Pi Application:**
+- Python 3
+- FastAPI
+- Uvicorn
+- Picamera2
+- Paho MQTT
+- Sense HAT
+- FFmpeg
+
+**Infrastructure & DevOps:**
+- Oracle Cloud Infrastructure (OCI)
+- Ubuntu 22.04 LTS
+- Nginx
+- MediaMTX
+- Mosquitto MQTT Broker
+- Let's Encrypt (Certbot)
+- GitHub Actions (CI/CD)
+- systemd
+- iptables
+
+**Development Tools:**
+- Git
+- Visual Studio Code
+- ESLint
+- npm / pip
 
 ## Features
 
