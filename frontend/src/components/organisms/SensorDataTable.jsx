@@ -115,7 +115,7 @@ function SensorDataTable() {
 
   return (
     <Card className="shadow-sm">
-      <Card.Header>
+      <Card.Header className="bg-primary">
         <Card.Title as="h2" className="mb-0">
           Sense HAT Sensor Data
         </Card.Title>

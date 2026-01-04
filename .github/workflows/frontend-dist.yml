@@ -33,4 +33,9 @@ jobs:
           rsync -avz --delete \
             frontend/dist/ \
             ubuntu@pi-guardian.kcolville.com:/home/ubuntu/Documents/frontend/dist/
+      
+      - name: Reload nginx
+        run: |
+          ssh ubuntu@pi-guardian.kcolville.com \
+            "sudo systemctl reload nginx"
 
