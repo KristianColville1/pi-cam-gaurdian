@@ -5,6 +5,7 @@ import { FaMoon, FaSun } from 'react-icons/fa';
 import { useAuth } from '@hooks/useAuth';
 import { useTheme } from '@hooks/useTheme';
 import Brand from '@components/atoms/Brand';
+import HamburgerMenu from '@components/atoms/HamburgerMenu/HamburgerMenu';
 import LoginModal from './LoginModal';
 
 function Navigation() {
@@ -23,12 +24,18 @@ function Navigation() {
     navLinks.push({ path: '/portal', label: 'Portal' });
   }
 
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <>
-      <Navbar expand="lg" className="border-bottom">
+      <Navbar expand="lg" className="border-bottom" expanded={isOpen} onToggle={setIsOpen}>
         <Container>
           <Brand as={Link} to="/" showLogo={true} />
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <HamburgerMenu
+            isOpen={isOpen}
+            onClick={() => setIsOpen(!isOpen)}
+            ariaControls="basic-navbar-nav"
+          />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto align-items-center">
               {navLinks.map((link) => (

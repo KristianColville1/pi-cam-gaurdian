@@ -1,0 +1,13 @@
+/* Hamburger menu styling */
+.navbar-toggler.hamburger {
+  padding: 0;
+}
+
+.navbar-toggler.hamburger:focus {
+  box-shadow: none;
+}
+
+.hamburger-inner {
+  color: var(--bs-body-color);
+}
+
