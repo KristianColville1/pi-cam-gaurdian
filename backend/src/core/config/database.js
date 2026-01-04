@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 
 export const AppDataSource = new DataSource({
   type: env.DB_TYPE,
-  database: resolve(__dirname, '../../../', env.DB_DATABASE),
+  database: resolve(__dirname, '../../../../', env.DB_DATABASE),
   synchronize: env.DB_SYNCHRONIZE,
   logging: env.DB_LOGGING,
   entities: [
