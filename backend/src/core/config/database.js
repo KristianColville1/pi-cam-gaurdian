@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve, join } from 'path';
 import env from './env.js';
 import { User } from '../../modules/auth/entities/User.entity.js';
+import { Device } from '../../modules/devices/entities/Device.entity.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -14,6 +15,7 @@ export const AppDataSource = new DataSource({
   logging: env.DB_LOGGING,
   entities: [
     User,
+    Device,
     // Add more entities here as needed
     // join(__dirname, '../../modules/**/entities/*.entity.js'),
   ],
