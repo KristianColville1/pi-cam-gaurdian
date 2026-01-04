@@ -1,0 +1,10 @@
+name: Frontend Dist Changes
+
+on:
+  push:
+    paths:
+      - 'frontend/dist/**'
+
+jobs:
+  # Add your jobs here
+
