@@ -6,6 +6,7 @@ from modules.streaming.service import StreamingService
 from modules.metrics.service import MetricsService
 from config import settings
 from api.routes import router
+from core.debug import setup_debug_logging
 
 
 # -------------------------------------------------------------------
@@ -17,6 +18,10 @@ logging.basicConfig(
     format=settings.LOG_FORMAT,
     datefmt="%Y-%m-%d %H:%M:%S"
 )
+
+# Set up debug file logging (after basicConfig to add file handler)
+setup_debug_logging()
+
 logger = logging.getLogger(__name__)
 
 

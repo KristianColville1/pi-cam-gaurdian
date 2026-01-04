@@ -6,5 +6,31 @@ on:
       - 'frontend/dist/**'
 
 jobs:
-  # Add your jobs here
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+      
+      - name: Remove remote dist folder
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@pi-guardian.kcolville.com \
+            "rm -rf /home/ubuntu/Documents/frontend/dist"
+      
+      - name: Create remote directory
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@pi-guardian.kcolville.com \
+            "mkdir -p /home/ubuntu/Documents/frontend/dist"
+      
+      - name: Deploy dist folder
+        run: |
+          rsync -avz --delete \
+            frontend/dist/ \
+            ubuntu@pi-guardian.kcolville.com:/home/ubuntu/Documents/frontend/dist/
 

@@ -1,6 +1,17 @@
 """Configuration settings for Pi Guardian service."""
 import os
 from typing import Optional
+from pathlib import Path
+
+# Load environment variables from .env file if it exists
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).parent / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+except ImportError:
+    # python-dotenv not installed, skip
+    pass
 
 
 class Settings:
@@ -18,14 +29,20 @@ class Settings:
         self.PORT: int = int(os.getenv("PORT", "8000"))
         
         # MQTT Configuration
-        self.MQTT_BROKER: str = os.getenv("MQTT_BROKER", "pi-guardian.kcolville.com")
+        mqtt_broker = os.getenv("MQTT_BROKER")
+        if not mqtt_broker:
+            raise ValueError("MQTT_BROKER environment variable must be set (see env.py for template)")
+        self.MQTT_BROKER: str = mqtt_broker
         self.MQTT_PORT: int = int(os.getenv("MQTT_PORT", "9001"))  # WebSocket port (default)
         self.MQTT_TOPIC_PREFIX: str = os.getenv("MQTT_TOPIC_PREFIX", "sensors")
         self.MQTT_METRICS_TOPIC: str = f"{self.MQTT_TOPIC_PREFIX}/metrics"
         self.MQTT_CLIENT_ID: Optional[str] = os.getenv("MQTT_CLIENT_ID")
         
         # Streaming Configuration
-        self.RTSP_URL: str = os.getenv("RTSP_URL", "rtsp://pi-guardian.kcolville.com:8554/cam")
+        rtsp_url = os.getenv("RTSP_URL")
+        if not rtsp_url:
+            raise ValueError("RTSP_URL environment variable must be set (see env.py for template)")
+        self.RTSP_URL: str = rtsp_url
         self.STREAM_RESOLUTION: str = os.getenv("STREAM_RESOLUTION", "1280:720")
         self.STREAM_FRAMERATE: int = int(os.getenv("STREAM_FRAMERATE", "30"))
         self.STREAM_BITRATE: int = int(os.getenv("STREAM_BITRATE", "1000000"))
