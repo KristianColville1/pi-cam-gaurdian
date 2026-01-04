@@ -38,7 +38,7 @@ function SensorDataTable() {
     function initializeMQTT() {
       // MQTT Configuration - connect through nginx proxy
       const MQTT_BROKER = 'pi-guardian.kcolville.com';
-      const MQTT_PORT = 9001; // HTTPS port (nginx handles SSL termination)
+      const MQTT_PORT = 433; // HTTPS port (nginx handles SSL termination)
       const MQTT_PATH = '/mqtt'; // Path matches nginx location /mqtt/
       const MQTT_TOPIC = 'sensors/metrics';
 
