@@ -360,18 +360,15 @@ The database infrastructure and authentication system established in Release 2 p
 
 ### Version Control
 
-I used [Visual Studio Code](https://code.visualstudio.com/) as a local repository and IDE & [GitHub](https://github.com/) as a remote repository.
+The project uses [Visual Studio Code](https://code.visualstudio.com/) as the local IDE and [GitHub](https://github.com/KristianColville1/pi-cam-gaurdian) as the remote repository.
 
-1. Firstly, I needed to create a new repository on Github [pi-cam-gaurdian](https://github.com/KristianColville1/pi-cam-gaurdian).
-2. I opened that repository on my local machine by copying the URL from that repository and cloning it from my IDE for use.
-3. Visual Studio Code opened a new workspace for me.
-4. I created files and folders to use.
-5. To push my newly created files to GitHub I used the terminal by pressing Ctrl + shift + `.
-6. A new terminal opened and then I used the below steps.
+**Basic Git Workflow:**
 
-   - `git add (name of the file)` *This selects the file for the commit*
-   - `git commit -m "Commit message: (i.e. Initial commit)"` *Allows the developer to assign a specific concise statement to the commit*
-   - `git push` *The final command sends the code to GitHub*
+- `git add <file>` - Stage files for commit
+- `git commit -m "message"` - Commit changes with descriptive message
+- `git push` - Push changes to GitHub
+
+For detailed deployment architecture, server setup, service configuration, and CI/CD workflows, see the [Deployment Documentation](docs/SDD/deployment.md).
 
 ### Cloning this Repository
 
@@ -390,277 +387,60 @@ Instructions:
 
 ### Server Setup
 
-**Oracle Cloud Free Tier Setup**
+The cloud infrastructure for PiCam Guardian is hosted on Oracle Cloud Infrastructure (OCI) using the free tier offering. The server runs Ubuntu 22.04 LTS on a dedicated VPS instance.
 
-The cloud infrastructure for PiCam Guardian is hosted on Oracle Cloud Infrastructure (OCI) using the free tier offering.
+**Infrastructure Overview:**
 
-**Initial Setup Process:**
+- **Provider**: Oracle Cloud Infrastructure (Free Tier)
+- **Operating System**: Ubuntu 22.04 LTS
+- **Domain**: pi-guardian.kcolville.com
+- **Services**: MediaMTX (RTSP/WebRTC), Mosquitto (MQTT), Nginx (Reverse Proxy), Backend API (Node.js)
 
-1. **Oracle Cloud Account Creation**
+For detailed server setup instructions, including Oracle Cloud configuration, SSH key setup, network configuration, and service installation, see the [Deployment Documentation](docs/SDD/deployment.md).
 
-   - Signed up for Oracle Cloud free tier account
-   - Accessed the Oracle Cloud Console
+### CI/CD Pipeline (GitHub Actions)
 
-   ![Oracle Cloud Signup](docs/dev-log/image/30-12-2025/1767105717858.png)
-   ![Oracle Cloud Console](docs/dev-log/image/30-12-2025/1767105930294.png)
-2. **Instance Creation**
+Frontend deployment is automated using GitHub Actions CI/CD workflows. When changes are pushed to the `frontend/dist/` directory, the workflow automatically:
 
-   - Created a compute instance with default settings
-   - Configured necessary settings and resolved initial setup errors
+1. Connects to the server via SSH using the `SERVER_SSH_KEY` secret
+2. Removes the existing remote dist folder completely
+3. Deploys the new dist folder using rsync (1:1 synchronization, no remnants)
+4. Reloads nginx to serve the updated files
 
-   ![Instance Creation](docs/dev-log/image/30-12-2025/1767106256048.png)
-   ![Instance Configuration](docs/dev-log/image/30-12-2025/1767106606821.png)
-3. **SSH Key Configuration**
+**Workflow File:** `.github/workflows/frontend-dist.yml`
 
-   - Encountered SSH key download error during initial setup
-   - Downloaded SSH keys from networking section
+**Configuration Requirements:**
 
-   ![SSH Key Error](docs/dev-log/image/30-12-2025/1767106689319.png)
-   ![SSH Key Download](docs/dev-log/image/30-12-2025/1767106724087.png)
-4. **Instance Details**
+- GitHub secret `SERVER_SSH_KEY`: Private SSH key for server authentication
+- Automatic trigger on push to `frontend/dist/**` path
 
-   - Instance created successfully
-   - Obtained FQDN (Fully Qualified Domain Name) for the instance
-
-   ![Instance Created](docs/dev-log/image/30-12-2025/1767106808077.png)
-   ![FQDN](docs/dev-log/image/30-12-2025/1767106938355.png)
-5. **Network Configuration**
-
-   - Configured local SSH keys for connection
-   - Created and attached public IP address to VNIC (Virtual Network Interface Card)
-   - Created reserved IP first, then attached to VNIC for public access
-
-   ![SSH Key Configuration](docs/dev-log/image/30-12-2025/1767107679358.png)
-   ![Create Public IP](docs/dev-log/image/30-12-2025/1767108282010.png)
-   ![Attach IP to VNIC](docs/dev-log/image/30-12-2025/1767108862519.png)
-   ![Reserved IP Attached](docs/dev-log/image/30-12-2025/1767109072490.png)
-6. **SSH Connection Verification**
-
-   - Successfully tested SSH connection using private key
-   - Confirmed remote access to the server
-
-   ![SSH Connection Success](docs/dev-log/image/30-12-2025/1767109200715.png)
-
-**Configuration Notes:**
-
-- Initially tested with Oracle Linux, but performance was too slow
-- Switched to Ubuntu 22.04 LTS for better performance and familiarity
-- Changed from shared compute to dedicated VPS for improved speed
-- After confirming SSH access, the initial instance was deleted and recreated with Ubuntu on dedicated VPS
-- The server now runs Ubuntu on a dedicated VPS instance on Oracle Cloud free tier
+For detailed GitHub Actions CI/CD workflow configuration and setup instructions, see the [Deployment Documentation](docs/SDD/deployment.md#cicd-pipeline-github-actions).
 
 ### Nginx & SSL Configuration
 
-Nginx serves as a reverse proxy for the frontend, backend API, and WebSocket connections. SSL/TLS certificates are managed through Let's Encrypt using Certbot.
+Nginx serves as a reverse proxy for the frontend, backend API, camera streaming, and WebSocket connections. SSL/TLS certificates are automatically managed through Let's Encrypt using Certbot.
 
-**Installation:**
+**Key Features:**
 
-```bash
-sudo apt update
-sudo apt install nginx -y
-```
+- Automatic HTTP to HTTPS redirect
+- SSL certificate auto-renewal via Certbot
+- Reverse proxy for backend API (port 3000)
+- WebSocket proxy for MQTT (port 9001) and camera streaming (port 8889)
+- Static file serving for React frontend
 
-![Nginx Installation](docs/dev-log/image/02-01-2026/1767357644381.png)
+For detailed nginx configuration, SSL setup, and troubleshooting, see the [Deployment Documentation](docs/SDD/deployment.md#nginx-configuration-details).
 
-**Initial Configuration:**
+### MQTT Mosquitto Setup
 
-1. **Copy Frontend and Backend Files**
+Mosquitto MQTT broker is installed and configured on the cloud server to handle sensor data publishing from the Raspberry Pi.
 
-   Ensure the frontend build (`dist` folder) and backend code are on the server:
+**Configuration:**
 
-   ![Server Files](docs/dev-log/image/02-01-2026/1767362518558.png)
-2. **Create Nginx Configuration**
+- **Ports**: 1883 (standard MQTT), 9001 (WebSocket)
+- **Service**: systemd service (auto-start on boot)
+- **Status**: Enabled and running
 
-   Navigate to the sites-available directory and create a configuration file:
-
-   ```bash
-   cd /etc/nginx/sites-available
-   sudo nano pi-guardian
-   ```
-
-   ![Sites Available Directory](docs/dev-log/image/02-01-2026/1767362732554.png)
-3. **Open Required Ports**
-
-   Configure Oracle Cloud security list to allow HTTP (port 80) and HTTPS (port 443):
-
-   ![Security List Configuration](docs/dev-log/image/02-01-2026/1767363155246.png)
-
-   Configure iptables on the server:
-
-   ```bash
-   sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-   sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-   ```
-
-   ![Iptables Configuration](docs/dev-log/image/02-01-2026/1767363276751.png)
-4. **Basic HTTP Configuration**
-
-   Initial nginx configuration for serving frontend and proxying backend:
-
-   ```nginx
-   server {
-       listen 80;
-       server_name pi-guardian.kcolville.com;
-
-       root /home/ubuntu/pi-guardian/frontend/dist;
-       index index.html;
-
-       location / {
-           try_files $uri /index.html;
-       }
-
-       location /api/ {
-           proxy_pass http://localhost:3000;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_cache_bypass $http_upgrade;
-       }
-   }
-   ```
-
-   Test the configuration and enable the site:
-
-   ```bash
-   sudo nginx -t
-   sudo ln -s /etc/nginx/sites-available/pi-guardian /etc/nginx/sites-enabled/
-   sudo systemctl restart nginx
-   ```
-
-   ![HTTP Working](docs/dev-log/image/02-01-2026/1767363826254.png)
-
-**SSL/TLS Configuration with Certbot:**
-
-1. **Install Certbot**
-
-   ```bash
-   sudo apt install certbot python3-certbot-nginx -y
-   ```
-2. **Obtain SSL Certificate**
-
-   Run Certbot to automatically configure SSL for your domain:
-
-   ```bash
-   sudo certbot --nginx -d pi-guardian.kcolville.com
-   ```
-
-   ![Certbot Configuration](docs/dev-log/image/02-01-2026/1767365097249.png)
-
-   Select option 2 to redirect HTTP traffic to HTTPS automatically:
-
-   ![Certbot Redirect Option](docs/dev-log/image/02-01-2026/1767365349025.png)
-3. **Verify SSL Configuration**
-
-   Certbot automatically updates your nginx configuration. Verify the changes:
-
-   ![Certbot Configuration Success](docs/dev-log/image/02-01-2026/1767365433954.png)
-
-**Common Issues & Solutions:**
-
-1. **Port Configuration Error**
-
-   Ensure port 443 (not 433) is opened in the Oracle Cloud security list:
-
-   ![Port Fix](docs/dev-log/image/02-01-2026/1767365655244.png)
-2. **HTTPS Working**
-
-   After fixing port configuration, the site should load over HTTPS:
-
-   ![HTTPS Success](docs/dev-log/image/02-01-2026/1767365712892.png)
-3. **WebSocket Proxy Configuration**
-
-   For MQTT WebSocket connections, ensure proper upgrade headers:
-
-   ```nginx
-   location /mqtt {
-       proxy_pass http://127.0.0.1:9001;
-       proxy_http_version 1.1;
-       proxy_set_header Upgrade $http_upgrade;
-       proxy_set_header Connection "Upgrade";
-       proxy_set_header Host $host;
-       proxy_set_header X-Real-IP $remote_addr;
-       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-       proxy_set_header X-Forwarded-Proto $scheme;
-   }
-   ```
-
-**Configuration Notes:**
-
-- Certbot automatically manages SSL certificate renewal
-- The configuration file is updated to include SSL settings and HTTP to HTTPS redirect
-- All traffic is automatically redirected to HTTPS for security
-- WebSocket connections require proper upgrade headers for WSS (WebSocket Secure) to work correctly
-
-### Setting Up MQTT Mosquitto
-
-MQTT Mosquitto is used as a publisher/subscriber system on the server so the Raspberry Pi can send events to it.
-
-**Installation:**
-
-```bash
-sudo apt update
-sudo apt install mosquitto mosquitto-clients
-```
-
-![Mosquitto Installation](docs/dev-log/image/01-01-2026/1767270903753.png)
-
-**Starting the Service:**
-
-```bash
-sudo systemctl enable mosquitto
-sudo systemctl start mosquitto
-```
-
-![Mosquitto Service Status](docs/dev-log/image/01-01-2026/1767270949504.png)
-
-**Network Configuration:**
-
-MQTT uses port 1883. Update the iptables and security list on the cloud server:
-
-```bash
-sudo iptables -A INPUT -p tcp --dport 1883 -j ACCEPT
-```
-
-![Iptables Configuration](docs/dev-log/image/01-01-2026/1767272015212.png)
-
-![Cloud Security List](docs/dev-log/image/01-01-2026/1767272055695.png)
-
-**Verify Service:**
-
-Check that the port is listening:
-
-```bash
-ss -nltp
-```
-
-![Port Listening Status](docs/dev-log/image/01-01-2026/1767272193402.png)
-
-**Testing Basic Communication:**
-
-Test the MQTT setup by subscribing on the Raspberry Pi or a local Linux machine:
-
-```bash
-mosquitto_sub -h your.server.ip -t test/topic
-```
-
-On the server, publish a test message:
-
-```bash
-mosquitto_pub -h your.server.ip -t test/topic -m "hello"
-```
-
-If ports need to be fixed, use a more specific iptables rule:
-
-```bash
-sudo iptables -I INPUT 5 -p tcp --dport 1883 -m conntrack --ctstate NEW -j ACCEPT
-```
-
-![Iptables Fix](docs/dev-log/image/01-01-2026/1767274152501.png)
-
-![Iptables Save](docs/dev-log/image/01-01-2026/1767274217423.png)
-
-![Pi Communication Confirmation](docs/dev-log/image/01-01-2026/1767274242550.png)
+For detailed Mosquitto installation, configuration, and network setup instructions, see the [Deployment Documentation](docs/SDD/deployment.md#cloud-server-deployment).
 
 ## Credits
 
