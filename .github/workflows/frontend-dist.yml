@@ -21,18 +21,18 @@ jobs:
       - name: Remove remote dist folder
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@pi-guardian.kcolville.com \
-            "rm -rf /home/ubuntu/Documents/frontend/dist"
+            "rm -rf /home/ubuntu/pi-guardian/frontend/dist"
       
       - name: Create remote directory
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@pi-guardian.kcolville.com \
-            "mkdir -p /home/ubuntu/Documents/frontend/dist"
+            "mkdir -p /home/ubuntu/pi-guardian/frontend/dist"
       
       - name: Deploy dist folder
         run: |
           rsync -avz --delete \
             frontend/dist/ \
-            ubuntu@pi-guardian.kcolville.com:/home/ubuntu/Documents/frontend/dist/
+            ubuntu@pi-guardian.kcolville.com:/home/ubuntu/pi-guardian/frontend/dist/
       
       - name: Reload nginx
         run: |
