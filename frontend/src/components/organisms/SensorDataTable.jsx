@@ -44,49 +44,128 @@ function SensorDataTable() {
 
       // eslint-disable-next-line no-undef
       if (typeof Paho === 'undefined' || typeof Paho.Client === 'undefined') {
-        console.error('Paho MQTT library failed to load');
+        console.error('[MQTT] Paho MQTT library failed to load', {
+          pahoExists: typeof Paho !== 'undefined',
+          clientExists: typeof Paho !== 'undefined' && typeof Paho.Client !== 'undefined',
+        });
         return;
       }
 
-      // Create MQTT client - constructor: (host, port, path, clientId)
-      // eslint-disable-next-line no-undef
-      client = new Paho.Client(
-        MQTT_BROKER,
-        MQTT_PORT,
-        MQTT_PATH,
-        'web_client_' + Math.random().toString(16).substr(2, 8)
-      );
+      try {
+        // Create MQTT client - constructor: (host, port, path, clientId)
+        const clientId = 'web_client_' + Math.random().toString(16).substr(2, 8);
+        // eslint-disable-next-line no-undef
+        client = new Paho.Client(
+          MQTT_BROKER,
+          MQTT_PORT,
+          MQTT_PATH,
+          clientId
+        );
 
-      // Set callback handlers
-      client.onConnectionLost = function (responseObject) {
-        if (responseObject.errorCode !== 0) {
-          console.error('MQTT connection lost: ' + responseObject.errorMessage);
-        }
-      };
+        console.log('[MQTT] Initializing connection', {
+          broker: MQTT_BROKER,
+          port: MQTT_PORT,
+          path: MQTT_PATH,
+          clientId,
+        });
 
-      client.onMessageArrived = function (message) {
-        try {
-          const data = JSON.parse(message.payloadString);
-          setMetrics((prev) => ({
-            ...prev,
-            ...data,
-          }));
-        } catch (e) {
-          console.error('Error parsing MQTT message:', e);
-        }
-      };
-      
-      const isSecure = window.location.protocol === 'https:';
-      client.connect({
-        onSuccess: function () {
-          console.log('Connected to MQTT broker via nginx proxy');
-          client.subscribe(MQTT_TOPIC);
-        },
-        onFailure: function (error) {
-          console.error('Failed to connect to MQTT broker:', error.errorMessage);
-        },
-        useSSL: isSecure,
-      });
+        // Set callback handlers
+        client.onConnectionLost = function (responseObject) {
+          if (!responseObject) {
+            console.error('[MQTT] Connection lost - response object is undefined or null');
+            return;
+          }
+
+          const errorCode = responseObject.errorCode ?? 'unknown';
+          const errorMessage = responseObject.errorMessage ?? 'No error message provided';
+
+          if (errorCode !== 0) {
+            console.error('[MQTT] Connection lost', {
+              errorCode,
+              errorMessage,
+              responseObject,
+            });
+          } else {
+            console.log('[MQTT] Connection lost (normal disconnect)');
+          }
+        };
+
+        client.onMessageArrived = function (message) {
+          if (!message) {
+            console.error('[MQTT] Message arrived but message object is null/undefined');
+            return;
+          }
+
+          try {
+            if (!message.payloadString) {
+              console.error('[MQTT] Message has no payload string', { message });
+              return;
+            }
+
+            const data = JSON.parse(message.payloadString);
+            
+            if (!data || typeof data !== 'object') {
+              console.warn('[MQTT] Parsed message is not an object', { data, message });
+              return;
+            }
+
+            setMetrics((prev) => ({
+              ...prev,
+              ...data,
+            }));
+          } catch (e) {
+            console.error('[MQTT] Error parsing message', {
+              error: e,
+              errorMessage: e?.message ?? 'Unknown error',
+              errorStack: e?.stack,
+              payload: message?.payloadString,
+              topic: message?.destinationName,
+              message,
+            });
+          }
+        };
+
+        const isSecure = window.location.protocol === 'https:';
+        
+        client.connect({
+          onSuccess: function () {
+            console.log('[MQTT] Successfully connected to broker');
+            try {
+              client.subscribe(MQTT_TOPIC);
+              console.log('[MQTT] Subscribed to topic:', MQTT_TOPIC);
+            } catch (e) {
+              console.error('[MQTT] Error subscribing to topic', {
+                error: e,
+                errorMessage: e?.message ?? 'Unknown error',
+                topic: MQTT_TOPIC,
+              });
+            }
+          },
+          onFailure: function (error) {
+            console.error('[MQTT] Failed to connect to broker', {
+              error,
+              errorCode: error?.errorCode ?? 'unknown',
+              errorMessage: error?.errorMessage ?? 'No error message provided',
+              errorString: error?.errorString ?? 'No error string provided',
+              broker: MQTT_BROKER,
+              port: MQTT_PORT,
+              path: MQTT_PATH,
+              useSSL: isSecure,
+              protocol: window.location.protocol,
+            });
+          },
+          useSSL: isSecure,
+        });
+      } catch (e) {
+        console.error('[MQTT] Error initializing MQTT client', {
+          error: e,
+          errorMessage: e?.message ?? 'Unknown error',
+          errorStack: e?.stack,
+          broker: MQTT_BROKER,
+          port: MQTT_PORT,
+          path: MQTT_PATH,
+        });
+      }
     }
 
     // Cleanup function
