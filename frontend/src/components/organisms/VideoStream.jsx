@@ -1,11 +1,18 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
+import { FaVideo } from 'react-icons/fa';
 
 function VideoStream() {
   const STREAM_URL = 'https://pi-guardian.kcolville.com/cam';
 
   return (
     <Card className="shadow-sm">
+      <Card.Header className="d-flex align-items-center gap-2">
+        <FaVideo />
+        <Card.Title as="h5" className="mb-0">
+          Live Camera Stream
+        </Card.Title>
+      </Card.Header>
       <Card.Body className="p-0">
         <div
           style={{
