@@ -3,6 +3,7 @@ import PageTemplate from '@components/templates/PageTemplate';
 import ProtectedRoute from '@components/organisms/ProtectedRoute';
 import Home from '@pages/Home';
 import Portal from '@pages/Portal';
+import ApiDocs from '@pages/ApiDocs';
 
 /**
  * Application routes configuration
@@ -23,6 +24,10 @@ export const router = createBrowserRouter([
             <Portal />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: 'api-docs',
+        element: <ApiDocs />,
       },
     ],
   },

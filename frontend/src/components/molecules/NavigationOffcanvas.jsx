@@ -1,5 +1,5 @@
 import React from 'react';
-import { Offcanvas, Nav } from 'react-bootstrap';
+import { Offcanvas, Nav, NavDropdown } from 'react-bootstrap';
 import { Link, useLocation } from 'react-router-dom';
 import { FaMoon, FaSun } from 'react-icons/fa';
 import { useAuth } from '@hooks/useAuth';
@@ -38,6 +38,11 @@ function NavigationOffcanvas({ show, onHide, onLoginClick }) {
               {link.label}
             </Nav.Link>
           ))}
+          <NavDropdown title="APIs" id="apis-dropdown-mobile" className="mb-2">
+            <NavDropdown.Item as={Link} to="/api-docs" onClick={onHide}>
+              Backend API
+            </NavDropdown.Item>
+          </NavDropdown>
           <div className="mt-auto pt-3 border-top">
             <ButtonGroup className="w-100 mb-2">
               <Button

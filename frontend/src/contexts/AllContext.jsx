@@ -5,8 +5,9 @@ import { AuthProvider } from "./AuthContext";
 import { ToastProvider } from "./ToastContext";
 import { ThemeProvider } from "./ThemeContext";
 import { SensorDataProvider } from "./SensorDataContext";
+import { ApiDocsProvider } from "./ApiDocsContext";
 
-const providers = [ThemeProvider, AuthProvider, ToastProvider, SensorDataProvider];
+const providers = [ThemeProvider, AuthProvider, ToastProvider, SensorDataProvider, ApiDocsProvider];
 
 export const AllContext = ({ children }) => {
     // eslint-disable-next-line

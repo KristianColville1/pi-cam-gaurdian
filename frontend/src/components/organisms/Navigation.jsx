@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navbar, Nav, Container, Button, ButtonGroup } from 'react-bootstrap';
+import { Navbar, Nav, Container, Button, ButtonGroup, NavDropdown } from 'react-bootstrap';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaMoon, FaSun } from 'react-icons/fa';
 import { useAuth } from '@hooks/useAuth';
@@ -51,6 +51,11 @@ function Navigation() {
                   {link.label}
                 </Nav.Link>
               ))}
+              <NavDropdown title="APIs" id="apis-dropdown" className="ms-2">
+                <NavDropdown.Item as={Link} to="/api-docs">
+                  Backend API
+                </NavDropdown.Item>
+              </NavDropdown>
               <ButtonGroup className="ms-2">
                 <Button
                   variant="outline-secondary"
