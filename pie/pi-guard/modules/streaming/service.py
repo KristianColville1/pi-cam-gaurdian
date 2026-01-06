@@ -65,13 +65,27 @@ class StreamingService:
         if self.ffmpeg_process:
             try:
                 logger.info("Terminating ffmpeg process...")
+                # Close stdin first to prevent further writes
+                if self.ffmpeg_process.stdin:
+                    try:
+                        self.ffmpeg_process.stdin.close()
+                    except Exception as e:
+                        logger.debug(f"Error closing ffmpeg stdin: {e}")
+                
+                # Terminate the process
                 self.ffmpeg_process.terminate()
                 try:
-                    self.ffmpeg_process.wait(timeout=5)
+                    self.ffmpeg_process.wait(timeout=3)  # Reduced timeout for faster recovery
                 except subprocess.TimeoutExpired:
                     logger.warning("FFmpeg didn't terminate, killing...")
                     self.ffmpeg_process.kill()
-                    self.ffmpeg_process.wait()
+                    try:
+                        self.ffmpeg_process.wait(timeout=2)
+                    except subprocess.TimeoutExpired:
+                        logger.error("FFmpeg process still alive after kill, may be zombie")
+            except ProcessLookupError:
+                # Process already dead
+                logger.debug("FFmpeg process already terminated")
             except Exception as e:
                 logger.error(f"Error terminating ffmpeg: {e}")
             finally:
@@ -106,18 +120,40 @@ class StreamingService:
                 # Build ffmpeg command
                 ffmpeg_cmd = self._build_ffmpeg_command()
                 
+                # Ensure any previous ffmpeg process is cleaned up
+                if self.ffmpeg_process:
+                    logger.warning("Cleaning up previous ffmpeg process before starting new one")
+                    self._cleanup_ffmpeg()
+                
                 # Start ffmpeg process
                 logger.info("Starting ffmpeg process...")
-                self.ffmpeg_process = subprocess.Popen(
-                    ffmpeg_cmd,
-                    stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    bufsize=0
-                )
-                
-                logger.info(f"FFmpeg process started with PID: {self.ffmpeg_process.pid}")
-                restart_count = 0  # Reset on successful start
+                try:
+                    self.ffmpeg_process = subprocess.Popen(
+                        ffmpeg_cmd,
+                        stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        bufsize=0
+                    )
+                    
+                    # Verify process started successfully
+                    if self.ffmpeg_process.poll() is not None:
+                        exit_code = self.ffmpeg_process.poll()
+                        raise RuntimeError(f"FFmpeg process exited immediately with code {exit_code}")
+                    
+                    logger.info(f"FFmpeg process started with PID: {self.ffmpeg_process.pid}")
+                    restart_count = 0  # Reset on successful start
+                    
+                    # Give ffmpeg a moment to initialize
+                    await asyncio.sleep(0.2)
+                    
+                except FileNotFoundError:
+                    logger.error("FFmpeg command not found. Please ensure ffmpeg is installed.")
+                    raise
+                except Exception as e:
+                    logger.error(f"Failed to start ffmpeg process: {e}", exc_info=True)
+                    self._cleanup_ffmpeg()
+                    raise
                 
                 # Get encoder output queue
                 encoder_output = self.camera_service.get_encoder_output()
@@ -134,19 +170,25 @@ class StreamingService:
                     while self._running and not self._shutdown_event.is_set():
                         current_time = time.time()
                         
-                        # Check if ffmpeg is still running
-                        if self.ffmpeg_process.poll() is not None:
-                            exit_code = self.ffmpeg_process.poll()
+                        # Check if ffmpeg is still running (check first before any operations)
+                        if self.ffmpeg_process is None or self.ffmpeg_process.poll() is not None:
+                            exit_code = self.ffmpeg_process.poll() if self.ffmpeg_process else None
                             logger.warning(f"FFmpeg process died with exit code: {exit_code}")
                             
                             # Read stderr for error details
-                            try:
-                                stderr = self.ffmpeg_process.stderr.read().decode('utf-8', errors='ignore')
-                                if stderr:
-                                    logger.error(f"FFmpeg stderr: {stderr[:500]}")
-                            except:
-                                pass
+                            if self.ffmpeg_process:
+                                try:
+                                    stderr = self.ffmpeg_process.stderr.read().decode('utf-8', errors='ignore')
+                                    if stderr:
+                                        logger.error(f"FFmpeg stderr: {stderr[:500]}")
+                                except:
+                                    pass
                             
+                            break  # Exit inner loop to restart
+                        
+                        # Validate stdin is still available and writable
+                        if not self.ffmpeg_process.stdin or self.ffmpeg_process.stdin.closed:
+                            logger.error("FFmpeg stdin is closed or unavailable")
                             break  # Exit inner loop to restart
                         
                         # Check if we've written data recently (ffmpeg health)
@@ -162,24 +204,49 @@ class StreamingService:
                             if frame_bytes:
                                 last_frame_time = current_time
                                 
-                                if self.ffmpeg_process.stdin:
-                                    try:
-                                        # Write H.264 encoded frame to ffmpeg
-                                        self.ffmpeg_process.stdin.write(frame_bytes)
-                                        self.ffmpeg_process.stdin.flush()
-                                        last_write_time = current_time
-                                        frames_written += 1
-                                        
-                                        # Log every 100 frames for debugging
-                                        if frames_written % 100 == 0:
-                                            logger.debug(f"Streamed {frames_written} frames to ffmpeg")
-                                    except BrokenPipeError:
-                                        logger.error("FFmpeg stdin pipe broken")
+                                # Double-check process and stdin before writing
+                                if self.ffmpeg_process is None or self.ffmpeg_process.poll() is not None:
+                                    logger.warning("FFmpeg process died during frame processing")
+                                    break
+                                
+                                if not self.ffmpeg_process.stdin or self.ffmpeg_process.stdin.closed:
+                                    logger.error("FFmpeg stdin closed during frame processing")
+                                    break
+                                
+                                try:
+                                    # Write H.264 encoded frame to ffmpeg
+                                    self.ffmpeg_process.stdin.write(frame_bytes)
+                                    self.ffmpeg_process.stdin.flush()
+                                    last_write_time = current_time
+                                    frames_written += 1
+                                    
+                                    # Log every 100 frames for debugging
+                                    if frames_written % 100 == 0:
+                                        logger.debug(f"Streamed {frames_written} frames to ffmpeg")
+                                except BrokenPipeError:
+                                    logger.error("FFmpeg stdin pipe broken - process likely died")
+                                    # Force immediate cleanup
+                                    self._cleanup_ffmpeg()
+                                    break
+                                except OSError as e:
+                                    # Handle various I/O errors (pipe errors, process gone, etc.)
+                                    logger.error(f"OS error writing to ffmpeg: {e}")
+                                    self._cleanup_ffmpeg()
+                                    break
+                                except ValueError as e:
+                                    # Handle closed file descriptor
+                                    logger.error(f"Value error writing to ffmpeg (likely closed): {e}")
+                                    self._cleanup_ffmpeg()
+                                    break
+                                except Exception as e:
+                                    logger.error(f"Unexpected error writing to ffmpeg: {e}", exc_info=True)
+                                    # Don't break immediately, but mark for restart if it persists
+                                    if current_time - last_write_time > 1.0:
+                                        logger.error("Multiple write failures, restarting ffmpeg")
+                                        self._cleanup_ffmpeg()
                                         break
-                                    except Exception as e:
-                                        logger.error(f"Error writing to ffmpeg: {e}")
-                                        await asyncio.sleep(0.1)
-                                        continue
+                                    await asyncio.sleep(0.1)
+                                    continue
                             else:
                                 # No frame available - check if camera is stuck
                                 if current_time - last_frame_time > no_frame_timeout:
@@ -187,34 +254,41 @@ class StreamingService:
                                     # Restart camera service
                                     try:
                                         self.camera_service.stop()
-                                        await asyncio.sleep(1)
+                                        await asyncio.sleep(0.5)  # Reduced delay for faster recovery
                                         self.camera_service.start()
                                         encoder_output = self.camera_service.get_encoder_output()
                                         last_frame_time = time.time()  # Reset timer
-                                        logger.info("Camera service restarted")
+                                        logger.info("Camera service restarted successfully")
                                     except Exception as e:
-                                        logger.error(f"Error restarting camera: {e}")
+                                        logger.error(f"Error restarting camera: {e}", exc_info=True)
+                                        # If camera restart fails, we should still try to continue
+                                        # but mark that we need to restart the whole stream
+                                        await asyncio.sleep(1)
                                 await asyncio.sleep(0.01)
                             
                         except Exception as e:
-                            logger.error(f"Error streaming H.264 frame: {e}")
+                            logger.error(f"Error streaming H.264 frame: {e}", exc_info=True)
                             await asyncio.sleep(0.1)
                             continue
                 
                 except asyncio.CancelledError:
                     break
                 
-                # Clean up before restart
+                # Clean up before restart (ensure it's done)
                 self._cleanup_ffmpeg()
                 
                 if self._shutdown_event.is_set():
                     break
                 
-                # Restart logic with backoff
+                # Restart logic with backoff (but faster initial restart)
                 restart_count += 1
                 if restart_count >= max_restart_attempts:
                     delay = restart_delay * restart_count
                     logger.warning(f"Multiple restart failures detected. Waiting {delay}s before retry...")
+                elif restart_count == 1:
+                    # First restart attempt - be very quick
+                    delay = 0.5
+                    logger.info("First restart attempt, quick recovery...")
                 else:
                     delay = restart_delay
                 
@@ -232,9 +306,15 @@ class StreamingService:
             
             except asyncio.CancelledError:
                 break
+            except KeyboardInterrupt:
+                logger.info("Received keyboard interrupt, shutting down...")
+                break
             except Exception as e:
                 logger.error(f"Unexpected error in stream loop: {e}", exc_info=True)
-                await asyncio.sleep(restart_delay)
+                # Clean up on unexpected errors
+                self._cleanup_ffmpeg()
+                # Quick recovery for unexpected errors
+                await asyncio.sleep(min(restart_delay, 1.0))
         
         # Final cleanup
         self._cleanup_ffmpeg()
