@@ -37,9 +37,13 @@ async function collectOperations() {
   const rootDir = getRuntimeRoot();
   const patterns = [
     'modules/**/controllers/**/*Controller.ts',
+    'modules/**/controllers/**/*Controller.js',
     'modules/**/controllers/**/*.controller.ts',
+    'modules/**/controllers/**/*.controller.js',
     'shared/**/controllers/**/*Controller.ts',
+    'shared/**/controllers/**/*Controller.js',
     'shared/**/controllers/**/*.controller.ts',
+    'shared/**/controllers/**/*.controller.js',
   ];
 
   const files = await fg(patterns, {

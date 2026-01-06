@@ -8,9 +8,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const DEFAULT_GLOB = [
     'modules/**/controllers/**/*Controller.ts',
+    'modules/**/controllers/**/*Controller.js',
     'modules/**/controllers/**/*.controller.ts',
+    'modules/**/controllers/**/*.controller.js',
     'shared/**/controllers/**/*Controller.ts',
+    'shared/**/controllers/**/*Controller.js',
     'shared/**/controllers/**/*.controller.ts',
+    'shared/**/controllers/**/*.controller.js',
 ];
 export async function registerControllers(app, options = {}) {
     const rootDir = getRuntimeRoot();
