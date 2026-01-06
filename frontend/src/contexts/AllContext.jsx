@@ -4,8 +4,9 @@ import React from "react";
 import { AuthProvider } from "./AuthContext";
 import { ToastProvider } from "./ToastContext";
 import { ThemeProvider } from "./ThemeContext";
+import { SensorDataProvider } from "./SensorDataContext";
 
-const providers = [ThemeProvider, AuthProvider, ToastProvider];
+const providers = [ThemeProvider, AuthProvider, ToastProvider, SensorDataProvider];
 
 export const AllContext = ({ children }) => {
     // eslint-disable-next-line
