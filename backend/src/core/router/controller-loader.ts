@@ -44,7 +44,7 @@ export async function registerControllers(app: express.Application, options: any
 
         const { router, routeCount } = createControllerRouter(Controller, metadata);
         registeredRoutes += routeCount;
-        console.log(`🧭 Registered controller ${Controller.name} at /api${metadata.basePath || '/'}`);
+        console.log(`🧭 Registered controller ${(Controller as any).name} at /api${metadata.basePath || '/'}`);
         app.use('/api', router);
       }
     } catch (error) {

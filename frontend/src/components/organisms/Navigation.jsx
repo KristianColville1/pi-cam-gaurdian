@@ -51,11 +51,13 @@ function Navigation() {
                   {link.label}
                 </Nav.Link>
               ))}
-              <NavDropdown title="APIs" id="apis-dropdown" className="ms-2">
-                <NavDropdown.Item as={Link} to="/api-docs">
-                  Backend API
-                </NavDropdown.Item>
-              </NavDropdown>
+              {isAuthenticated && (
+                <NavDropdown title="APIs" id="apis-dropdown" className="ms-2">
+                  <NavDropdown.Item as={Link} to="/api-docs">
+                    Backend API
+                  </NavDropdown.Item>
+                </NavDropdown>
+              )}
               <ButtonGroup className="ms-2">
                 <Button
                   variant="outline-secondary"

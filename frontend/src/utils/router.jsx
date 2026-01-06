@@ -27,7 +27,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'api-docs',
-        element: <ApiDocs />,
+        element: (
+          <ProtectedRoute>
+            <ApiDocs />
+          </ProtectedRoute>
+        ),
       },
     ],
   },

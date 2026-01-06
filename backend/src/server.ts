@@ -46,7 +46,7 @@ async function bootstrap() {
   app.use(notFoundHandler);
   app.use(errorHandler);
 
-  const port = env.PORT;
+  const port = typeof env.PORT === 'string' ? parseInt(env.PORT, 10) : env.PORT;
   const host = env.HOST || '0.0.0.0';
 
   app.listen(port, host, () => {
