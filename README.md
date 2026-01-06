@@ -445,6 +445,27 @@ The cloud infrastructure for PiCam Guardian is hosted on Oracle Cloud Infrastruc
 
 For detailed server setup instructions, including Oracle Cloud configuration, SSH key setup, network configuration, and service installation, see the [Deployment Documentation](docs/SDD/deployment.md).
 
+### Raspberry Pi Development (pi-guard)
+
+The Raspberry Pi application (`pi-guard`) is developed on the Pi and can be synced back to the local repository for version control.
+
+**Pulling Changes from Raspberry Pi:**
+
+To pull changes made on the Raspberry Pi back to the local repository:
+
+```bash
+rsync -avz --exclude '.venv' --exclude '__pycache__' --exclude '*.pyc' kristian@192.168.178.99:/home/kristian/Documents/pi-guard/ /home/kristian/Documents/GitHub/pi-cam-gaurdian/pie/pi-guard/
+```
+
+**Note:** Replace `kristian` with your Pi username if different, and adjust the IP address (`192.168.178.99`) if your Pi's network address has changed.
+
+**Exclusions:**
+- `.venv` - Virtual environment folder
+- `__pycache__` - Python cache directories
+- `*.pyc` - Compiled Python files
+
+For detailed Raspberry Pi application deployment and configuration, see the [Deployment Documentation](docs/SDD/deployment.md#raspberry-pi-deployment).
+
 ### CI/CD Pipeline (GitHub Actions)
 
 Frontend deployment is automated using GitHub Actions CI/CD workflows. When changes are pushed to the `frontend/dist/` directory, the workflow automatically:
