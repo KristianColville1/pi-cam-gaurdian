@@ -1,16 +1,11 @@
+import { Request, Response } from 'express';
 import { AppDataSource } from '../../../core/config/database.js';
 import { generateToken } from '../../../core/utils/jwt.js';
 import bcrypt from 'bcrypt';
 import { User } from '../entities/User.entity.js';
 
-/**
- * HTTP handler for authentication endpoints
- */
 class AuthHttpHandler {
-  /**
-   * Login handler
-   */
-  async login(req, res) {
+  async login(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
 
@@ -18,37 +13,30 @@ class AuthHttpHandler {
         return res.status(400).json({ error: 'Email and password are required' });
       }
 
-      // Get repository
       const UserRepository = AppDataSource.getRepository(User);
-
-      // Find user by email
       const user = await UserRepository.findOne({ where: { email } });
       if (!user) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      // Verify password
       const isValidPassword = await bcrypt.compare(password, user.password_hash);
       if (!isValidPassword) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      // Generate JWT token
       const token = generateToken({
         sub: user.id,
         email: user.email,
-        role: 'user', // You can add role field to User entity later
+        role: 'user',
       });
 
-      // Set cookie
       res.cookie('auth_token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        maxAge: 24 * 60 * 60 * 1000,
       });
 
-      // Return user data (without password)
       const { password_hash, ...userData } = user;
       res.json({ user: userData, token });
     } catch (error) {
@@ -57,10 +45,7 @@ class AuthHttpHandler {
     }
   }
 
-  /**
-   * Register handler
-   */
-  async register(req, res) {
+  async register(req: Request, res: Response) {
     try {
       const { email, password, firstName, lastName } = req.body;
 
@@ -68,19 +53,13 @@ class AuthHttpHandler {
         return res.status(400).json({ error: 'Email and password are required' });
       }
 
-      // Get repository
       const UserRepository = AppDataSource.getRepository(User);
-
-      // Check if user already exists
       const existingUser = await UserRepository.findOne({ where: { email } });
       if (existingUser) {
         return res.status(409).json({ error: 'Email already registered' });
       }
 
-      // Hash password
       const passwordHash = await bcrypt.hash(password, 10);
-
-      // Create user
       const user = UserRepository.create({
         email,
         password_hash: passwordHash,
@@ -92,14 +71,12 @@ class AuthHttpHandler {
 
       await UserRepository.save(user);
 
-      // Generate JWT token
       const token = generateToken({
         sub: user.id,
         email: user.email,
         role: 'user',
       });
 
-      // Set cookie
       res.cookie('auth_token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -107,7 +84,6 @@ class AuthHttpHandler {
         maxAge: 24 * 60 * 60 * 1000,
       });
 
-      // Return user data (without password)
       const { password_hash, ...userData } = user;
       res.status(201).json({ user: userData, token });
     } catch (error) {
@@ -116,20 +92,14 @@ class AuthHttpHandler {
     }
   }
 
-  /**
-   * Logout handler
-   */
-  async logout(req, res) {
+  async logout(req: Request, res: Response) {
     res.clearCookie('auth_token');
     res.json({ message: 'Logged out successfully' });
   }
 
-  /**
-   * Get current user handler
-   */
-  async getCurrentUser(req, res) {
+  async getCurrentUser(req: Request, res: Response) {
     try {
-      const userId = req.user.sub;
+      const userId = (req as any).user.sub;
       const UserRepository = AppDataSource.getRepository(User);
       const user = await UserRepository.findOne({ where: { id: userId } });
 

@@ -1,7 +1,8 @@
+import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt.js';
 
-// Error classes - create simple error classes if they don't exist elsewhere
 export class UnauthorizedError extends Error {
+  statusCode: number;
   constructor(message = 'Unauthorized') {
     super(message);
     this.name = 'UnauthorizedError';
@@ -10,6 +11,7 @@ export class UnauthorizedError extends Error {
 }
 
 export class ForbiddenError extends Error {
+  statusCode: number;
   constructor(message = 'Forbidden') {
     super(message);
     this.name = 'ForbiddenError';
@@ -21,12 +23,9 @@ const AUTH_COOKIE_NAME = 'auth_token';
 
 /**
  * Middleware to authenticate requests
- * Extracts token from cookies or Authorization header and verifies it
- * Sets req.user with decoded token payload
- * @returns {Function} Express middleware function
  */
 export function authenticateRequest() {
-  return (req, res, next) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     try {
       const token = extractToken(req);
       if (!token) {
@@ -34,7 +33,7 @@ export function authenticateRequest() {
       }
 
       const decoded = verifyToken(token);
-      req.user = decoded;
+      (req as any).user = decoded;
 
       next();
     } catch (error) {
@@ -45,12 +44,9 @@ export function authenticateRequest() {
 
 /**
  * Optional authentication middleware
- * Attempts to authenticate but doesn't fail if token is missing or invalid
- * Sets req.user if valid token is found
- * @returns {Function} Express middleware function
  */
 export function optionalAuth() {
-  return (req, res, next) => {
+  return (req: Request, res: Response, next: NextFunction) => {
     try {
       const token = extractToken(req);
       if (!token) {
@@ -58,7 +54,7 @@ export function optionalAuth() {
       }
 
       const decoded = verifyToken(token);
-      req.user = decoded;
+      (req as any).user = decoded;
       next();
     } catch {
       next();
@@ -68,17 +64,15 @@ export function optionalAuth() {
 
 /**
  * Middleware to require specific user roles
- * Must be used after authenticateRequest() middleware
- * @param {string[]} allowedRoles - Array of allowed role strings
- * @returns {Function} Express middleware function
  */
-export function requireRole(allowedRoles) {
-  return (req, res, next) => {
-    if (!req.user) {
+export function requireRole(allowedRoles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+    if (!user) {
       return next(new UnauthorizedError());
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    if (!allowedRoles.includes(user.role)) {
       return next(new ForbiddenError('Insufficient permissions'));
     }
 
@@ -86,14 +80,8 @@ export function requireRole(allowedRoles) {
   };
 }
 
-/**
- * Extract JWT token from request
- * Checks cookies first, then Authorization header
- * @param {Object} req - Express request object
- * @returns {string|null} Token string or null
- */
-function extractToken(req) {
-  const cookieToken = req.cookies?.[AUTH_COOKIE_NAME];
+function extractToken(req: Request): string | null {
+  const cookieToken = (req as any).cookies?.[AUTH_COOKIE_NAME];
   if (cookieToken) {
     return cookieToken;
   }
@@ -110,3 +98,4 @@ function extractToken(req) {
 
   return token;
 }
+

@@ -8,28 +8,14 @@ import { CONTROLLER_METADATA, ROUTES_METADATA } from '../decorators/controller.j
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/**
- * Default glob patterns for locating controller classes.
- * 
- * Scans:
- * - Domain modules: modules with entities (DDD bounded contexts)
- * - Shared utilities: cross-cutting utilities without entities
- */
 const DEFAULT_GLOB = [
-  'modules/**/controllers/**/*Controller.js',
-  'modules/**/controllers/**/*.controller.js',
-  'shared/**/controllers/**/*Controller.js',
-  'shared/**/controllers/**/*.controller.js',
+  'modules/**/controllers/**/*Controller.ts',
+  'modules/**/controllers/**/*.controller.ts',
+  'shared/**/controllers/**/*Controller.ts',
+  'shared/**/controllers/**/*.controller.ts',
 ];
 
-/**
- * Dynamically discover and register every controller with the provided Express app.
- * @param {Object} app - Express application instance
- * @param {Object} options - Options for loading controllers
- * @param {string|string[]} options.controllersGlob - Custom glob patterns for controllers
- * @returns {Promise<number>} Number of registered routes
- */
-export async function registerControllers(app, options = {}) {
+export async function registerControllers(app: express.Application, options: any = {}) {
   const rootDir = getRuntimeRoot();
   const patterns = Array.isArray(options.controllersGlob)
     ? options.controllersGlob
@@ -70,32 +56,21 @@ export async function registerControllers(app, options = {}) {
 }
 
 function getRuntimeRoot() {
-  // __dirname is src/core/router
-  // We want the directory that contains modules/**
   return resolve(__dirname, '..', '..');
 }
 
-async function importModule(filePath) {
-  // In ESM, dynamic imports are cached. For hot reload in dev,
-  // you might want to implement a cache-busting mechanism if needed.
-  // For now, we'll use the standard dynamic import.
+async function importModule(filePath: string) {
   return await import(filePath);
 }
 
-/**
- * Filter module exports to controller classes (identified by `@Controller` metadata).
- */
-function getControllerClasses(moduleExports) {
-  return Object.values(moduleExports).filter((exportValue) => {
+function getControllerClasses(moduleExports: any) {
+  return Object.values(moduleExports).filter((exportValue: any) => {
     if (typeof exportValue !== 'function') return false;
     return Reflect.hasMetadata(CONTROLLER_METADATA, exportValue);
   });
 }
 
-/**
- * Instantiate a controller, wire its routes, and return an Express router instance.
- */
-function createControllerRouter(Controller, metadata) {
+function createControllerRouter(Controller: any, metadata: any) {
   const router = express.Router();
   const controllerInstance = new Controller();
   const routes = Reflect.getMetadata(ROUTES_METADATA, Controller) || [];
@@ -105,7 +80,7 @@ function createControllerRouter(Controller, metadata) {
     const fullPath = resolveRoutePath(metadata.basePath, route.path);
     const middlewares = route.middlewares || [];
 
-    router[route.method.toLowerCase()](fullPath, ...middlewares, wrapAsync(handler));
+    (router as any)[route.method.toLowerCase()](fullPath, ...middlewares, wrapAsync(handler));
   }
 
   return {
@@ -114,7 +89,7 @@ function createControllerRouter(Controller, metadata) {
   };
 }
 
-function getControllerHandler(instance, propertyKey) {
+function getControllerHandler(instance: any, propertyKey: string) {
   const handler = instance[propertyKey];
   if (typeof handler !== 'function') {
     throw new Error(`Controller handler ${String(propertyKey)} is not a function`);
@@ -123,7 +98,7 @@ function getControllerHandler(instance, propertyKey) {
   return handler.bind(instance);
 }
 
-function resolveRoutePath(basePath, routePath) {
+function resolveRoutePath(basePath: string, routePath: string) {
   const normalizedBase = basePath.startsWith('/') ? basePath : `/${basePath}`;
   const normalizedRoute = routePath.startsWith('/') ? routePath : `/${routePath}`;
 
@@ -138,8 +113,9 @@ function resolveRoutePath(basePath, routePath) {
   return `${normalizedBase}${normalizedRoute}`.replace(/\/{2,}/g, '/');
 }
 
-function wrapAsync(handler) {
-  return (req, res, next) => {
+function wrapAsync(handler: any) {
+  return (req: any, res: any, next: any) => {
     Promise.resolve(handler(req, res, next)).catch(next);
   };
 }
+

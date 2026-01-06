@@ -6,7 +6,6 @@ async function seed() {
   try {
     console.log('Starting database seed...');
 
-    // Initialize database connection
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
       console.log('✓ Database connection established');
@@ -14,7 +13,6 @@ async function seed() {
 
     const UserRepository = AppDataSource.getRepository(User);
 
-    // Check if admin user already exists
     const existingAdmin = await UserRepository.findOne({
       where: { email: 'test@test.com' },
     });
@@ -25,7 +23,6 @@ async function seed() {
       process.exit(0);
     }
 
-    // Create admin user
     const passwordHash = await bcrypt.hash('admin123', 10);
 
     const adminUser = UserRepository.create({
@@ -43,7 +40,6 @@ async function seed() {
     console.log('  Email: test@test.com');
     console.log('  Password: admin123');
 
-    // Close database connection
     await AppDataSource.destroy();
     console.log('✓ Database connection closed');
     process.exit(0);

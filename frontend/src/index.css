@@ -163,3 +163,17 @@ body.dark-mode {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(0.25rem); }
 }
+
+/* Swagger UI adjustments */
+
+.swagger-ui * {
+  color: var(--bs-body-color) !important;
+}
+
+.opblock-summary-method {
+  color: var(--bs-body-bg-light) !important;
+}
+
+.opblock-tag {
+  background-color: var(--bs-body-bg-light) !important;
+}

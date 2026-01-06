@@ -56,7 +56,8 @@ async function bootstrap() {
   });
 }
 
-bootstrap().catch((error) => {
+bootstrap().catch((error: any) => {
   console.error('Failed to start server', error);
   process.exit(1);
 });
+
