@@ -53,6 +53,20 @@ class Settings:
         # Backend API Configuration
         self.BACKEND_API_URL: Optional[str] = os.getenv("BACKEND_API_URL")
         
+        # Storage Configuration (Bunny.net)
+        # Video CDN (recording bucket)
+        self.VIDEO_CDN_LIBRARY_ID: Optional[str] = os.getenv("VIDEO_CDN_LIBRARY_ID")
+        self.VIDEO_CDN_HOST: Optional[str] = os.getenv("VIDEO_CDN_HOST")
+        self.VIDEO_CDN_PULL_ZONE: Optional[str] = os.getenv("VIDEO_CDN_PULL_ZONE")
+        self.VIDEO_CDN_API_KEY: Optional[str] = os.getenv("VIDEO_CDN_API_KEY")
+        
+        # Static Asset CDN (FTP)
+        self.CDN_USER: Optional[str] = os.getenv("CDN_USER")
+        self.CDN_HOST: Optional[str] = os.getenv("CDN_HOST")
+        self.CDN_PORT: int = int(os.getenv("CDN_PORT", "21"))
+        self.CDN_CONNECTION_TYPE: str = os.getenv("CDN_CONNECTION_TYPE", "PASSIVE")
+        self.CDN_PASS: Optional[str] = os.getenv("CDN_PASS")
+        
         # Camera Configuration (Picamera2)
         self.CAMERA_ENABLED: bool = os.getenv("CAMERA_ENABLED", "true").lower() == "true"
         self.CAMERA_IMU_CONFIG: bool = os.getenv("CAMERA_IMU_CONFIG", "true").lower() == "true"

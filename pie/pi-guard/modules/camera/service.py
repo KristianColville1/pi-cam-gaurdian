@@ -126,12 +126,12 @@ class CameraService:
         self._running = False
         self._shutdown_event.set()
         
-        # Cancel health monitoring task
+        # Cancel health monitoring task (with timeout to avoid hanging)
         if self._health_task and not self._health_task.done():
             self._health_task.cancel()
             try:
-                await self._health_task
-            except asyncio.CancelledError:
+                await asyncio.wait_for(self._health_task, timeout=0.5)
+            except (asyncio.CancelledError, asyncio.TimeoutError):
                 pass
         
         await self._stop_camera_internal()
@@ -145,16 +145,27 @@ class CameraService:
             
             def _stop_camera_internal_blocking():
                 try:
+                    if encoder is not None:
+                        try:
+                            camera.stop_encoder(encoder)
+                        except Exception as e:
+                            logger.warning(f"Error stopping encoder: {e}")
                     if camera.started:
                         camera.stop()
-                    if encoder is not None:
-                        camera.stop_encoder(encoder)
                 except Exception as e:
                     logger.error(f"Error stopping camera: {e}", exc_info=True)
             
-            # Run blocking stop operations in executor
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, _stop_camera_internal_blocking)
+            # Run blocking stop operations in executor with timeout
+            try:
+                loop = asyncio.get_event_loop()
+                await asyncio.wait_for(
+                    loop.run_in_executor(None, _stop_camera_internal_blocking),
+                    timeout=2.0
+                )
+            except asyncio.TimeoutError:
+                logger.warning("Camera stop timed out, forcing cleanup")
+            except Exception as e:
+                logger.error(f"Error in camera stop executor: {e}")
             
             self.camera = None
             self._encoder = None

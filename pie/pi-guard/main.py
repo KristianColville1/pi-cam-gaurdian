@@ -1,11 +1,14 @@
 """Main FastAPI application entry point."""
+import asyncio
 import logging
 from fastapi import FastAPI
 from modules.camera.service import CameraService
 from modules.streaming.service import StreamingService
 from modules.metrics.service import MetricsService
+from modules.storage.service import StorageService
 from config import settings
 from api.routes import router
+from api.camera_routes import router as camera_router
 from core.debug import setup_debug_logging
 
 
@@ -38,6 +41,7 @@ app = FastAPI(
 
 # Include API routes
 app.include_router(router)
+app.include_router(camera_router)
 
 # -------------------------------------------------------------------
 # Services (singletons)
@@ -46,6 +50,7 @@ app.include_router(router)
 camera_service = CameraService()
 streaming_service = StreamingService(camera_service)
 metrics_service = MetricsService()
+storage_service = StorageService()
 
 # -------------------------------------------------------------------
 # Lifecycle
@@ -59,9 +64,10 @@ async def on_startup():
     app.state.camera_service = camera_service
     app.state.streaming_service = streaming_service
     app.state.metrics_service = metrics_service
+    app.state.storage_service = storage_service
 
     await camera_service.start()
-    await streaming_service.start()
+    streaming_service.start()
     await metrics_service.start()
 
     logger.info("All services started")
@@ -70,9 +76,25 @@ async def on_startup():
 async def on_shutdown():
     logger.info("Stopping services...")
 
-    await metrics_service.stop()
-    await streaming_service.stop()
-    await camera_service.stop()
+    # Stop services with timeout to prevent hanging
+    try:
+        await asyncio.wait_for(metrics_service.stop(), timeout=3.0)
+    except asyncio.TimeoutError:
+        logger.warning("Metrics service stop timed out")
+    except Exception as e:
+        logger.error(f"Error stopping metrics service: {e}")
+    
+    try:
+        streaming_service.stop()  # Synchronous, should be fast
+    except Exception as e:
+        logger.error(f"Error stopping streaming service: {e}")
+    
+    try:
+        await asyncio.wait_for(camera_service.stop(), timeout=3.0)
+    except asyncio.TimeoutError:
+        logger.warning("Camera service stop timed out")
+    except Exception as e:
+        logger.error(f"Error stopping camera service: {e}")
 
     logger.info("All services stopped")
 

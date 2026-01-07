@@ -171,23 +171,40 @@ class MetricsService:
         if self._publish_task and not self._publish_task.done():
             self._publish_task.cancel()
             try:
-                await self._publish_task
-            except asyncio.CancelledError:
+                await asyncio.wait_for(self._publish_task, timeout=0.5)
+            except (asyncio.CancelledError, asyncio.TimeoutError):
                 pass
         
         if self._reconnect_task and not self._reconnect_task.done():
             self._reconnect_task.cancel()
             try:
-                await self._reconnect_task
-            except asyncio.CancelledError:
+                await asyncio.wait_for(self._reconnect_task, timeout=0.5)
+            except (asyncio.CancelledError, asyncio.TimeoutError):
                 pass
         
-        # Disconnect MQTT
+        # Disconnect MQTT (with timeout to avoid hanging)
         if self.mqtt_client:
             try:
                 loop = asyncio.get_event_loop()
-                await loop.run_in_executor(None, self.mqtt_client.loop_stop)
-                await loop.run_in_executor(None, self.mqtt_client.disconnect)
+                try:
+                    await asyncio.wait_for(
+                        loop.run_in_executor(None, self.mqtt_client.loop_stop),
+                        timeout=1.0
+                    )
+                except asyncio.TimeoutError:
+                    logger.warning("MQTT loop_stop timed out")
+                except Exception as e:
+                    logger.warning(f"Error stopping MQTT loop: {e}")
+                
+                try:
+                    await asyncio.wait_for(
+                        loop.run_in_executor(None, self.mqtt_client.disconnect),
+                        timeout=1.0
+                    )
+                except asyncio.TimeoutError:
+                    logger.warning("MQTT disconnect timed out")
+                except Exception as e:
+                    logger.warning(f"Error disconnecting MQTT: {e}")
             except Exception as e:
                 logger.error(f"Error disconnecting MQTT client: {e}")
             finally:
