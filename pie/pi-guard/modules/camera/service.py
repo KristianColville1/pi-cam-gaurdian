@@ -59,21 +59,29 @@ class CameraService:
             if self.camera is not None:
                 await self._stop_camera_internal()
             
-            self.camera = Picamera2()
-            
             # Parse streaming resolution
             stream_width, stream_height = settings.STREAM_RESOLUTION.split(':')
             stream_size = (int(stream_width), int(stream_height))
             
-            # Configure camera with dual streams:
-            # - main: Higher resolution for snapshots/recording
-            # - lores: Lower resolution for streaming
-            try:
-                video_config = self.camera.create_video_configuration(
+            # Run blocking camera operations in executor to avoid blocking event loop
+            loop = asyncio.get_event_loop()
+            
+            # Initialize camera in executor
+            def _init_camera():
+                camera = Picamera2()
+                
+                # Configure camera with dual streams:
+                # - main: Higher resolution for snapshots/recording
+                # - lores: Lower resolution for streaming
+                video_config = camera.create_video_configuration(
                     main={"size": (1920, 1080)},  # High-res for snapshots
                     lores={"size": stream_size}    # Low-res for streaming
                 )
-                self.camera.configure(video_config)
+                camera.configure(video_config)
+                return camera, stream_size
+            
+            try:
+                self.camera, stream_size = await loop.run_in_executor(None, _init_camera)
                 logger.debug("Camera video configuration created successfully")
             except Exception as e:
                 logger.error(f"Failed to create/configure video configuration: {e}", exc_info=True)
@@ -88,10 +96,14 @@ class CameraService:
             self._encoder = H264Encoder(bitrate=settings.STREAM_BITRATE)
             self._encoder.output = self._encoder_output
             
-            # Start encoder on lores stream (streaming channel)
-            # When both main and lores are configured, encoder defaults to lores
-            self.camera.start_encoder(self._encoder)
-            self.camera.start()
+            # Start encoder and camera in executor
+            def _start_camera_internal():
+                # Start encoder on lores stream (streaming channel)
+                # When both main and lores are configured, encoder defaults to lores
+                self.camera.start_encoder(self._encoder)
+                self.camera.start()
+            
+            await loop.run_in_executor(None, _start_camera_internal)
             
             self._last_frame_time = time.time()
             logger.info(f"Camera started with dual streams: main=1920x1080, lores={stream_size}, bitrate={settings.STREAM_BITRATE}bps, framerate={settings.STREAM_FRAMERATE}fps")
@@ -128,17 +140,25 @@ class CameraService:
     async def _stop_camera_internal(self):
         """Internal method to stop camera and clean up."""
         if self.camera is not None:
-            try:
-                if self.camera.started:
-                    self.camera.stop()
-                if self._encoder is not None:
-                    self.camera.stop_encoder(self._encoder)
-            except Exception as e:
-                logger.error(f"Error stopping camera: {e}", exc_info=True)
-            finally:
-                self.camera = None
-                self._encoder = None
-                self._encoder_output = None
+            camera = self.camera
+            encoder = self._encoder
+            
+            def _stop_camera_internal_blocking():
+                try:
+                    if camera.started:
+                        camera.stop()
+                    if encoder is not None:
+                        camera.stop_encoder(encoder)
+                except Exception as e:
+                    logger.error(f"Error stopping camera: {e}", exc_info=True)
+            
+            # Run blocking stop operations in executor
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, _stop_camera_internal_blocking)
+            
+            self.camera = None
+            self._encoder = None
+            self._encoder_output = None
     
     async def _health_monitor_loop(self):
         """Monitor camera health and restart if necessary."""
@@ -236,9 +256,9 @@ class CameraService:
         """Get the Picamera2 instance."""
         return self.camera
     
-    def capture_frame(self):
+    async def capture_frame(self):
         """
-        Capture a frame from the main (high-resolution) stream.
+        Capture a frame from the main (high-resolution) stream asynchronously.
         This is used for snapshots and recording, independent of streaming.
         Updates the last frame time for health monitoring.
         """
@@ -247,8 +267,10 @@ class CameraService:
         if not self.camera.started:
             raise RuntimeError("Camera not running. Call start() first.")
         
-        # Capture from main stream (high resolution)
-        frame = self.camera.capture_array("main")
+        # Capture from main stream (high resolution) in executor to avoid blocking
+        loop = asyncio.get_event_loop()
+        camera = self.camera  # Capture reference for executor
+        frame = await loop.run_in_executor(None, lambda: camera.capture_array("main"))
         self._last_frame_time = time.time()  # Update health monitor
         return frame
     
