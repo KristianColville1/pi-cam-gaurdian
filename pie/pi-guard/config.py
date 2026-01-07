@@ -44,8 +44,8 @@ class Settings:
             raise ValueError("RTSP_URL environment variable must be set (see env.py for template)")
         self.RTSP_URL: str = rtsp_url
         self.STREAM_RESOLUTION: str = os.getenv("STREAM_RESOLUTION", "1280:720")
-        self.STREAM_FRAMERATE: int = int(os.getenv("STREAM_FRAMERATE", "30"))
-        self.STREAM_BITRATE: int = int(os.getenv("STREAM_BITRATE", "1000000"))
+        self.STREAM_FRAMERATE: int = int(os.getenv("STREAM_FRAMERATE", "15"))
+        self.STREAM_BITRATE: int = int(os.getenv("STREAM_BITRATE", "512000"))  # 512kbps
         
         # Metrics Configuration
         self.METRICS_PUBLISH_INTERVAL: float = float(os.getenv("METRICS_PUBLISH_INTERVAL", "2.0"))

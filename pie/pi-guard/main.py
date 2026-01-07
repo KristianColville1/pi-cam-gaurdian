@@ -60,7 +60,7 @@ async def on_startup():
     app.state.streaming_service = streaming_service
     app.state.metrics_service = metrics_service
 
-    camera_service.start()
+    await camera_service.start()
     streaming_service.start()
     metrics_service.start()
 
@@ -72,7 +72,7 @@ async def on_shutdown():
 
     metrics_service.stop()
     streaming_service.stop()
-    camera_service.stop()
+    await camera_service.stop()
 
     logger.info("All services stopped")
 

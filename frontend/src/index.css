@@ -177,3 +177,7 @@ body.dark-mode {
 .opblock-tag {
   background-color: var(--bs-body-bg-light) !important;
 }
+
+.opblock-section-header {
+  background-color: var(--bs-body-bg-light) !important;
+}
