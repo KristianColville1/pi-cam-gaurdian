@@ -8,6 +8,14 @@ import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import './NavigationOffcanvas.css';
 
+/**
+ * NavigationOffcanvas component
+ * @param {Object} props - The component props
+ * @param {boolean} props.show - Whether the offcanvas is shown
+ * @param {Function} props.onHide - The function to call when the offcanvas is hidden
+ * @param {Function} props.onLoginClick - The function to call when the login button is clicked
+ * @returns {JSX.Element} The NavigationOffcanvas component
+ */
 function NavigationOffcanvas({ show, onHide, onLoginClick }) {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
@@ -17,9 +25,10 @@ function NavigationOffcanvas({ show, onHide, onLoginClick }) {
     { path: '/', label: 'Home' },
   ];
 
-  // Add Portal link only if authenticated
+  // Add Portal and Metrics History links only if authenticated
   if (isAuthenticated) {
     navLinks.push({ path: '/portal', label: 'Portal' });
+    navLinks.push({ path: '/metrics-history', label: 'Metrics History' });
   }
 
   return (

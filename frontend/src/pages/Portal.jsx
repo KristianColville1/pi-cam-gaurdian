@@ -6,6 +6,11 @@ import SensorCharts from '@components/organisms/SensorCharts';
 import SensorDataTable from '@components/organisms/SensorDataTable';
 import PortalActions from '@components/organisms/PortalActions';
 
+/**
+ * Portal page component
+ * @returns {JSX.Element}
+ * @description Displays the portal page for the PiCam Guardian application.
+ */
 function Portal() {
   return (
       <Container fluid className="py-4">

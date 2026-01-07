@@ -2,7 +2,10 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-// Create axios instance
+/**
+ * apiClient
+ * @returns {Object} The apiClient instance
+ */
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true, // Important for cookies
@@ -11,7 +14,11 @@ export const apiClient = axios.create({
   },
 });
 
-// Request interceptor (can add auth token here if needed)
+/**
+ * Request interceptor
+ * @param {Object} config - The request config
+ * @returns {Object} The request config
+ */
 apiClient.interceptors.request.use(
   (config) => {
     // Add any default headers here
@@ -22,13 +29,16 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+/**
+ * Response interceptor
+ * @param {Object} response - The response
+ * @returns {Object} The response
+ */
 apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
   (error) => {
-    // Handle common errors
     if (error.response?.status === 401) {
       // Unauthorized - token expired or invalid
       // Could dispatch logout action here

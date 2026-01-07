@@ -4,9 +4,12 @@ import ProtectedRoute from '@components/organisms/ProtectedRoute';
 import Home from '@pages/Home';
 import Portal from '@pages/Portal';
 import ApiDocs from '@pages/ApiDocs';
+import MetricsHistory from '@pages/MetricsHistory';
 
 /**
  * Application routes configuration
+ * @returns {Object}
+ * @description Creates the application routes configuration.
  */
 export const router = createBrowserRouter([
   {
@@ -30,6 +33,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <ApiDocs />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'metrics-history',
+        element: (
+          <ProtectedRoute>
+            <MetricsHistory />
           </ProtectedRoute>
         ),
       },

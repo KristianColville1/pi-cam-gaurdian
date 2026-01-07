@@ -25,6 +25,16 @@ ChartJS.register(
   Filler
 );
 
+/**
+ * SensorChart component
+ * @param {Object} props - The component props
+ * @param {string} props.title - The title of the chart
+ * @param {string} props.dataKey - The data key for the chart
+ * @param {string} props.unit - The unit of the chart
+ * @param {Array} props.history - The history for the chart
+ * @param {string} props.color - The color of the chart
+ * @returns {JSX.Element} The SensorChart component
+ */
 function SensorChart({ title, dataKey, unit, history, color }) {
   const { isDark } = useTheme();
 

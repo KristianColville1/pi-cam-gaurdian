@@ -11,6 +11,9 @@ export const AuthContext = createContext();
 
 /**
  * AuthProvider component
+ * @param {Object} children - The children components
+ * @returns {JSX.Element}
+ * @description Provides the AuthContext to the component.
  */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

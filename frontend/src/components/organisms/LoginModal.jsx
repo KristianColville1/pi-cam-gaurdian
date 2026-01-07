@@ -3,6 +3,14 @@ import { Modal, Form, Button, Alert } from 'react-bootstrap';
 import { useAuth } from '@hooks/useAuth';
 import { useToast } from '@hooks/useToast';
 
+/**
+ * LoginModal component
+ * @param {Object} props - The component props
+ * @param {boolean} props.show - Whether the modal is shown
+ * @param {Function} props.onHide - The function to call when the modal is hidden
+ * @param {Function} props.onSuccess - The function to call when the login is successful
+ * @returns {JSX.Element} The LoginModal component
+ */
 function LoginModal({ show, onHide, onSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

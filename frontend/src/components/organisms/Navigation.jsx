@@ -9,6 +9,10 @@ import HamburgerMenu from '@components/atoms/HamburgerMenu/HamburgerMenu';
 import NavigationOffcanvas from '@components/molecules/NavigationOffcanvas';
 import LoginModal from './LoginModal';
 
+/**
+ * Navigation component
+ * @returns {JSX.Element} The Navigation component
+ */
 function Navigation() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -20,9 +24,10 @@ function Navigation() {
     { path: '/', label: 'Home' },
   ];
 
-  // Add Portal link only if authenticated
+  // Add Portal and Metrics History links only if authenticated
   if (isAuthenticated) {
     navLinks.push({ path: '/portal', label: 'Portal' });
+    navLinks.push({ path: '/metrics-history', label: 'Metrics History' });
   }
 
   const [isOffcanvasOpen, setIsOffcanvasOpen] = useState(false);

@@ -5,6 +5,9 @@ export const ApiDocsContext = createContext();
 
 /**
  * ApiDocsProvider - manages OpenAPI specification data
+ * @param {Object} children - The children components
+ * @returns {JSX.Element}
+ * @description Provides the ApiDocsContext to the component.
  */
 export const ApiDocsProvider = ({ children }) => {
   const [spec, setSpec] = useState(null);

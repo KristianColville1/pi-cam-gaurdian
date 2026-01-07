@@ -2,6 +2,15 @@ import React, { useState } from 'react';
 import { Button, Spinner } from 'react-bootstrap';
 import { useToast } from '@hooks/useToast';
 
+/**
+ * ActionButton component
+ * @param {Object} props - The component props
+ * @param {string} props.variant - The variant of the button
+ * @param {React.ElementType} props.icon - The icon to display
+ * @param {string} props.label - The label of the button
+ * @param {Function} props.onClick - The function to call when the button is clicked
+ * @returns {JSX.Element} The ActionButton component
+ */
 function ActionButton({
   variant = 'primary',
   icon: Icon,

@@ -2,6 +2,10 @@ import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import Brand from '@components/atoms/Brand';
 
+/**
+ * Footer component
+ * @returns {JSX.Element} The Footer component
+ */
 function Footer() {
   const currentYear = new Date().getFullYear();
 

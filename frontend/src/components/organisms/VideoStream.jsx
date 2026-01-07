@@ -2,6 +2,10 @@ import React from 'react';
 import { Card } from 'react-bootstrap';
 import { FaVideo } from 'react-icons/fa';
 
+/**
+ * VideoStream component
+ * @returns {JSX.Element} The VideoStream component
+ */
 function VideoStream() {
   const STREAM_URL = 'https://pi-guardian.kcolville.com/cam';
 

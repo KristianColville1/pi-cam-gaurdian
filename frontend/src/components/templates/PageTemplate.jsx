@@ -3,6 +3,10 @@ import { Outlet } from 'react-router-dom';
 import Navigation from '@components/organisms/Navigation';
 import Footer from '@components/organisms/Footer';
 
+/**
+ * PageTemplate component
+ * @returns {JSX.Element} The PageTemplate component
+ */
 function PageTemplate() {
   return (
     <div className="d-flex flex-column min-vh-100">

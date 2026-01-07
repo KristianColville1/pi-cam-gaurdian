@@ -4,6 +4,10 @@ import { useSensorData } from '@hooks/useSensorData';
 import SensorChart from '@components/molecules/SensorChart';
 import MultiSensorChart from '@components/molecules/MultiSensorChart';
 
+/**
+ * SensorCharts component
+ * @returns {JSX.Element} The SensorCharts component
+ */
 function SensorCharts() {
   const { history } = useSensorData();
 

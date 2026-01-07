@@ -2,6 +2,10 @@ import React from 'react';
 import { Card, Table, Badge } from 'react-bootstrap';
 import { useSensorData } from '@hooks/useSensorData';
 
+/**
+ * SensorDataTable component
+ * @returns {JSX.Element} The SensorDataTable component
+ */
 function SensorDataTable() {
   const { metrics, isConnected } = useSensorData();
 

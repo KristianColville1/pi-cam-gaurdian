@@ -1,6 +1,11 @@
 import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 
+/**
+ * Home page component
+ * @returns {JSX.Element}
+ * @description Displays the home page for the PiCam Guardian application.
+ */
 function Home() {
   return (
     <Container className="py-5">

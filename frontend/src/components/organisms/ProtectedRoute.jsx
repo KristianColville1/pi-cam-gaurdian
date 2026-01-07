@@ -2,6 +2,12 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
 
+/**
+ * ProtectedRoute component
+ * @param {Object} props - The component props
+ * @param {React.ReactNode} props.children - The children components
+ * @returns {JSX.Element} The ProtectedRoute component
+ */
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
 

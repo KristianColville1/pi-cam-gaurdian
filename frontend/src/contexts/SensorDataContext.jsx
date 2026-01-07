@@ -4,6 +4,9 @@ export const SensorDataContext = createContext();
 
 /**
  * SensorDataProvider - manages live MQTT sensor data
+ * @param {Object} children - The children components
+ * @returns {JSX.Element}
+ * @description Provides the SensorDataContext to the component.
  */
 export const SensorDataProvider = ({ children }) => {
   const [metrics, setMetrics] = useState({

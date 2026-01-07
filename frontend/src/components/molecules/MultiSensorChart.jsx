@@ -25,6 +25,14 @@ ChartJS.register(
   Filler
 );
 
+/**
+ * MultiSensorChart component
+ * @param {Object} props - The component props
+ * @param {string} props.title - The title of the chart
+ * @param {Array} props.datasets - The datasets for the chart
+ * @param {Array} props.history - The history for the chart
+ * @returns {JSX.Element} The MultiSensorChart component
+ */
 function MultiSensorChart({ title, datasets, history }) {
   const { isDark } = useTheme();
 

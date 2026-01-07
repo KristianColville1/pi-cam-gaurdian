@@ -12,6 +12,10 @@ import {
     FaTint
 } from 'react-icons/fa';
 
+/**
+ * SensorMetrics component
+ * @returns {JSX.Element} The SensorMetrics component
+ */
 function SensorMetrics() {
   const { metrics, isConnected } = useSensorData();
 

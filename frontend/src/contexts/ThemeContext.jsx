@@ -4,6 +4,9 @@ export const ThemeContext = createContext();
 
 /**
  * ThemeProvider component - manages light/dark mode
+ * @param {Object} children - The children components
+ * @returns {JSX.Element}
+ * @description Provides the ThemeContext to the component.
  */
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {

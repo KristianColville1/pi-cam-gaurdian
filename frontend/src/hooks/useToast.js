@@ -3,6 +3,8 @@ import { ToastContext } from '@contexts/ToastContext';
 
 /**
  * Hook to use toast context
+ * @returns {Object}
+ * @description Provides the ToastContext to the component.
  */
 export const useToast = () => {
   const context = useContext(ToastContext);

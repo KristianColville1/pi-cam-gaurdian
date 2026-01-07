@@ -4,6 +4,11 @@ import SwaggerUI from 'swagger-ui-react';
 import { useApiDocs } from '@hooks/useApiDocs';
 import { useTheme } from '@hooks/useTheme';
 
+/**
+ * ApiDocs page component
+ * @returns {JSX.Element}
+ * @description Displays the API documentation for the PiCam Guardian backend.
+ */
 function ApiDocs() {
   const { spec, loading, error, fetchApiDocs } = useApiDocs();
   const { isDark } = useTheme();

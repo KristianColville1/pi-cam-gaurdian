@@ -2,6 +2,7 @@ import apiClient from '../apiClient.js';
 
 /**
  * Authentication API functions
+ * @returns {Object} The authAPI instance
  */
 
 export const authAPI = {

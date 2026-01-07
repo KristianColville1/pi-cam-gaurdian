@@ -6,9 +6,16 @@ import { ToastProvider } from "./ToastContext";
 import { ThemeProvider } from "./ThemeContext";
 import { SensorDataProvider } from "./SensorDataContext";
 import { ApiDocsProvider } from "./ApiDocsContext";
+import { HistoricalMetricsProvider } from "./HistoricalMetricsContext";
 
-const providers = [ThemeProvider, AuthProvider, ToastProvider, SensorDataProvider, ApiDocsProvider];
+const providers = [ThemeProvider, AuthProvider, ToastProvider, SensorDataProvider, ApiDocsProvider, HistoricalMetricsProvider];
 
+/**
+ * AllContext component
+ * @param {Object} children - The children components
+ * @returns {JSX.Element}
+ * @description Provides all the contexts to the application.
+ */
 export const AllContext = ({ children }) => {
     // eslint-disable-next-line
     return providers.reduceRight((acc, Provider) => {

@@ -10,6 +10,10 @@ import {
   FaInfoCircle 
 } from 'react-icons/fa';
 
+/**
+ * PortalActions component
+ * @returns {JSX.Element} The PortalActions component
+ */
 function PortalActions() {
   const { triggerToast } = useToast();
   const [isRecording, setIsRecording] = useState(false);

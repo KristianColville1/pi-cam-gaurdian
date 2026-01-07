@@ -5,7 +5,12 @@ export const ToastContext = createContext();
 
 
 
-// ToastProvider component
+/**
+ * ToastProvider component
+ * @param {Object} children - The children components
+ * @returns {JSX.Element}
+ * @description Provides the ToastContext to the component.
+ */
 export const ToastProvider = ({ children }) => {
     const [toasts, setToasts] = useState([]);
 
