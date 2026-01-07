@@ -93,7 +93,8 @@ class MetricsHttpHandler {
       const totalCount = await queryBuilder.getCount();
 
       const pageNum = Math.max(1, parseInt(page as string, 10));
-      const limitNum = Math.min(100, Math.max(1, parseInt(limit as string, 10)));
+      // Allow up to 10000 records for historical data analysis
+      const limitNum = Math.min(10000, Math.max(1, parseInt(limit as string, 10)));
       const skip = (pageNum - 1) * limitNum;
 
       queryBuilder.skip(skip).take(limitNum);

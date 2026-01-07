@@ -1,42 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ButtonGroup, Button, Spinner } from 'react-bootstrap';
 import { useToast } from '@hooks/useToast';
-import { piAPI } from '../../lib/api/pi';
+import { cameraAPI } from '../../lib/api/camera';
 import { 
   FaCamera, 
   FaVideo, 
   FaStop, 
-  FaHistory,
-  FaInfoCircle 
+  FaHistory
 } from 'react-icons/fa';
 
 /**
  * PortalActions component
+ * @param {Object} props - Component props
+ * @param {Function} props.onImageCaptured - Callback when image is captured
+ * @param {Function} props.onTabChange - Callback to change active tab
  * @returns {JSX.Element} The PortalActions component
  */
-function PortalActions() {
+function PortalActions({ onImageCaptured, onTabChange }) {
   const { triggerToast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingStatus, setRecordingStatus] = useState(null);
   const [loading, setLoading] = useState({});
-
-  // Check recording status on mount
-  useEffect(() => {
-    checkRecordingStatus();
-    // Poll recording status every 5 seconds
-    const interval = setInterval(checkRecordingStatus, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const checkRecordingStatus = async () => {
-    try {
-      const response = await piAPI.getRecordingStatus();
-      setIsRecording(response.data?.recording || false);
-      setRecordingStatus(response.data);
-    } catch (error) {
-      console.debug('Recording status check failed:', error);
-    }
-  };
 
   const handleAction = async (actionName, actionFn) => {
     setLoading((prev) => ({ ...prev, [actionName]: true }));
@@ -54,38 +37,35 @@ function PortalActions() {
   };
 
   const handleCaptureImage = async () => {
-    const response = await piAPI.captureImage();
+    const response = await cameraAPI.captureImage();
     triggerToast('success', 'Image Captured', 'Image captured successfully!');
-    if (response.data?.url) {
-      window.open(response.data.url, '_blank');
+    if (onImageCaptured) {
+      onImageCaptured();
+    }
+    if (onTabChange) {
+      onTabChange('images');
     }
   };
 
   const handleStartRecording = async () => {
-    await piAPI.startRecording();
+    await cameraAPI.startRecording();
     setIsRecording(true);
     triggerToast('success', 'Recording Started', 'Video recording has started');
+    if (onTabChange) {
+      onTabChange('recordings');
+    }
   };
 
   const handleStopRecording = async () => {
-    await piAPI.stopRecording();
+    await cameraAPI.stopRecording();
     setIsRecording(false);
     triggerToast('success', 'Recording Stopped', 'Video recording has stopped');
   };
 
-  const handleViewEvents = async () => {
-    const response = await piAPI.getEvents({ limit: 50 });
-    triggerToast('info', 'Events', `Loaded ${response.data?.length || 0} events`);
-  };
-
-  const handleGetStatus = async () => {
-    const response = await piAPI.getStatus();
-    const status = response.data;
-    triggerToast(
-      'info',
-      'System Status',
-      `Camera: ${status?.camera?.status || 'unknown'}, Metrics: ${status?.metrics?.status || 'unknown'}`
-    );
+  const handleViewEvents = () => {
+    if (onTabChange) {
+      onTabChange('events');
+    }
   };
 
   return (
@@ -135,36 +115,13 @@ function PortalActions() {
         )}
         <Button
           variant="info"
-          onClick={() => handleAction('events', handleViewEvents)}
-          disabled={loading.events}
+          onClick={handleViewEvents}
           className="rounded-0"
         >
-          {loading.events ? (
-            <Spinner animation="border" size="sm" className="me-1" />
-          ) : (
-            <FaHistory className="me-1" />
-          )}
+          <FaHistory className="me-1" />
           Events
         </Button>
-        <Button
-          variant="secondary"
-          onClick={() => handleAction('status', handleGetStatus)}
-          disabled={loading.status}
-          className="rounded-0"
-        >
-          {loading.status ? (
-            <Spinner animation="border" size="sm" className="me-1" />
-          ) : (
-            <FaInfoCircle className="me-1" />
-          )}
-          Status
-        </Button>
       </ButtonGroup>
-      {recordingStatus && isRecording && (
-        <small className="text-muted">
-          Recording... Duration: {recordingStatus.duration || 'N/A'}
-        </small>
-      )}
     </div>
   );
 }

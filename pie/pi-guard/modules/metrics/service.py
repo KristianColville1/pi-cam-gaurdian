@@ -6,6 +6,7 @@ import time
 from typing import Optional
 from sense_hat import SenseHat
 import paho.mqtt.client as mqtt
+import requests
 
 from config import settings
 
@@ -139,20 +140,50 @@ class MetricsService:
             logger.error(f"Error reading sensor metrics: {e}")
             return None
     
+    def _send_metrics_to_backend(self, metrics: dict):
+        """Send metrics to backend API asynchronously (non-blocking)."""
+        if not settings.BACKEND_API_URL:
+            return
+        
+        def _send_in_thread():
+            """Send metrics in a separate thread to avoid blocking."""
+            try:
+                url = f"{settings.BACKEND_API_URL.rstrip('/')}/api/metrics/"
+                response = requests.post(url, json=metrics, timeout=5)
+                if response.status_code == 201:
+                    logger.debug(f"Sent metrics to backend API successfully")
+                else:
+                    logger.warning(f"Backend API returned status {response.status_code}: {response.text}")
+            except requests.exceptions.RequestException as e:
+                logger.warning(f"Failed to send metrics to backend API: {e}")
+            except Exception as e:
+                logger.error(f"Unexpected error sending metrics to backend: {e}")
+        
+        # Fire and forget - run in a daemon thread
+        send_thread = threading.Thread(target=_send_in_thread, daemon=True)
+        send_thread.start()
+    
     def _publish_metrics(self):
-        """Publish sensor metrics to MQTT broker."""
+        """Publish sensor metrics to MQTT broker and backend API."""
         while not self._shutdown_flag:
             try:
                 metrics = self._get_sensor_metrics()
-                if metrics and self.mqtt_client and self.mqtt_client.is_connected():
-                    payload = json.dumps(metrics)
-                    result = self.mqtt_client.publish(settings.MQTT_METRICS_TOPIC, payload)
-                    if result.rc == mqtt.MQTT_ERR_SUCCESS:
-                        logger.info(f"Published metrics to {settings.MQTT_METRICS_TOPIC}: {payload}")
-                    else:
-                        logger.warning(f"Failed to publish metrics, return code: {result.rc}")
-                elif not self.mqtt_client or not self.mqtt_client.is_connected():
-                    logger.warning("MQTT client not connected, skipping publish")
+                if metrics:
+                    # Send to MQTT
+                    if self.mqtt_client and self.mqtt_client.is_connected():
+                        payload = json.dumps(metrics)
+                        result = self.mqtt_client.publish(settings.MQTT_METRICS_TOPIC, payload)
+                        if result.rc == mqtt.MQTT_ERR_SUCCESS:
+                            logger.info(f"Published metrics to {settings.MQTT_METRICS_TOPIC}: {payload}")
+                        else:
+                            logger.warning(f"Failed to publish metrics, return code: {result.rc}")
+                    elif not self.mqtt_client or not self.mqtt_client.is_connected():
+                        logger.warning("MQTT client not connected, skipping publish")
+                    
+                    # Send to backend API
+                    self._send_metrics_to_backend(metrics)
+                else:
+                    logger.warning("Failed to collect metrics, skipping publish")
             except Exception as e:
                 logger.error(f"Error publishing metrics: {e}")
             

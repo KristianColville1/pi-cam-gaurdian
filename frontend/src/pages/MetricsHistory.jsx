@@ -53,10 +53,6 @@ function MetricsHistory() {
     }
   };
 
-  const handlePageChange = (newPage) => {
-    updateFilters({ page: newPage });
-    fetchMetrics({ page: newPage });
-  };
 
   return (
     <Container fluid className="py-4">
@@ -106,7 +102,7 @@ function MetricsHistory() {
                     />
                   </Form.Group>
                 </Col>
-                <Col md={3}>
+                <Col md={4}>
                   <Form.Group>
                     <Form.Label>End Date</Form.Label>
                     <Form.Control
@@ -114,18 +110,6 @@ function MetricsHistory() {
                       value={filters.end_date || ''}
                       onChange={(e) => handleDateChange('end_date', e.target.value)}
                     />
-                  </Form.Group>
-                </Col>
-                <Col md={2}>
-                  <Form.Group>
-                    <Form.Label>Items per Page</Form.Label>
-                    <Form.Select
-                      value={filters.limit}
-                      onChange={(e) => updateFilters({ limit: parseInt(e.target.value), page: 1 })}
-                    >
-                      <option value={50}>50</option>
-                      <option value={100}>100</option>
-                    </Form.Select>
                   </Form.Group>
                 </Col>
                 <Col md={2}>
@@ -217,32 +201,15 @@ function MetricsHistory() {
         </Row>
       )}
 
-      {/* Pagination */}
-      {!loading && !error && pagination && pagination.totalPages > 1 && (
+      {/* Data Summary */}
+      {!loading && !error && pagination && (
         <Row className="mt-4">
           <Col>
             <Card className="shadow-sm">
               <Card.Body>
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    Showing page {pagination.page} of {pagination.totalPages} ({pagination.total} total records)
-                  </div>
-                  <ButtonGroup>
-                    <Button
-                      variant="outline-primary"
-                      onClick={() => handlePageChange(pagination.page - 1)}
-                      disabled={!pagination.hasPrevPage}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline-primary"
-                      onClick={() => handlePageChange(pagination.page + 1)}
-                      disabled={!pagination.hasNextPage}
-                    >
-                      Next
-                    </Button>
-                  </ButtonGroup>
+                <div className="text-center text-muted">
+                  Displaying {metrics.length} of {pagination.total} records
+                  {filters.start_date || filters.end_date ? ' for selected date range' : ''}
                 </div>
               </Card.Body>
             </Card>

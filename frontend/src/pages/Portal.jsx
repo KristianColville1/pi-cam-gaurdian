@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import VideoStream from '@components/organisms/VideoStream';
 import SensorMetrics from '@components/organisms/SensorMetrics';
 import SensorCharts from '@components/organisms/SensorCharts';
 import SensorDataTable from '@components/organisms/SensorDataTable';
 import PortalActions from '@components/organisms/PortalActions';
+import PortalContentTabs from '@components/organisms/PortalContentTabs';
 
 /**
  * Portal page component
@@ -12,6 +13,17 @@ import PortalActions from '@components/organisms/PortalActions';
  * @description Displays the portal page for the PiCam Guardian application.
  */
 function Portal() {
+  const [activeTab, setActiveTab] = useState('events');
+  const [imageCaptured, setImageCaptured] = useState(0);
+
+  const handleImageCaptured = () => {
+    setImageCaptured((prev) => prev + 1);
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+
   return (
       <Container fluid className="py-4">
           {/* Header Section */}
@@ -24,14 +36,26 @@ function Portal() {
               </Col>
           </Row>
 
-          {/* Main Content - Video Stream with Actions */}
+          {/* Main Content - Video Stream, Actions, Metrics and Content Tabs */}
           <Row className="g-4 mb-4">
               <Col lg={6}>
                   <VideoStream />
-                  <PortalActions />
+                  <div className="mt-3">
+                      <PortalActions 
+                          onImageCaptured={handleImageCaptured}
+                          onTabChange={handleTabChange}
+                      />
+                  </div>
+                  <div className="mt-3">
+                      <SensorMetrics />
+                  </div>
               </Col>
-              <Col lg={6} className="d-flex align-items-start">
-                  <SensorMetrics />
+              <Col lg={6}>
+                  <PortalContentTabs 
+                      activeTab={activeTab}
+                      onTabChange={handleTabChange}
+                      onImageCaptured={imageCaptured}
+                  />
               </Col>
           </Row>
 

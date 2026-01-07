@@ -19,9 +19,9 @@ export const HistoricalMetricsProvider = ({ children }) => {
     end_date: null,
     device_id: null,
     page: 1,
-    limit: 100,
+    limit: 10000, // Fetch larger datasets for historical analysis
     sort: 'recorded_at',
-    order: 'DESC',
+    order: 'ASC', // ASC for chronological chart display
   });
 
   const fetchMetrics = useCallback(async (newFilters = {}) => {
@@ -83,9 +83,9 @@ export const HistoricalMetricsProvider = ({ children }) => {
       end_date: null,
       device_id: null,
       page: 1,
-      limit: 100,
+      limit: 10000,
       sort: 'recorded_at',
-      order: 'DESC',
+      order: 'ASC',
     };
     setFilters(defaultFilters);
   }, []);

@@ -50,6 +50,9 @@ class Settings:
         # Metrics Configuration
         self.METRICS_PUBLISH_INTERVAL: float = float(os.getenv("METRICS_PUBLISH_INTERVAL", "2.0"))
         
+        # Backend API Configuration
+        self.BACKEND_API_URL: Optional[str] = os.getenv("BACKEND_API_URL")
+        
         # Camera Configuration (Picamera2)
         self.CAMERA_ENABLED: bool = os.getenv("CAMERA_ENABLED", "true").lower() == "true"
         self.CAMERA_IMU_CONFIG: bool = os.getenv("CAMERA_IMU_CONFIG", "true").lower() == "true"

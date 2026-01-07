@@ -1,16 +1,16 @@
 import apiClient from '../apiClient.js';
 
 /**
- * Pi Guardian API functions
- * Handles communication with the Raspberry Pi FastAPI service
+ * Camera API functions
+ * Handles communication with the camera service
  */
-export const piAPI = {
+export const cameraAPI = {
   /**
    * Capture an image from the camera
    * @returns {Promise} Axios response with image data
    */
   captureImage: async () => {
-    return apiClient.post('/pi/capture');
+    return apiClient.post('/camera/capture');
   },
 
   /**
@@ -18,7 +18,7 @@ export const piAPI = {
    * @returns {Promise} Axios response
    */
   startRecording: async () => {
-    return apiClient.post('/pi/recording/start');
+    return apiClient.post('/camera/recording/start');
   },
 
   /**
@@ -26,15 +26,7 @@ export const piAPI = {
    * @returns {Promise} Axios response
    */
   stopRecording: async () => {
-    return apiClient.post('/pi/recording/stop');
-  },
-
-  /**
-   * Get recording status
-   * @returns {Promise} Axios response
-   */
-  getRecordingStatus: async () => {
-    return apiClient.get('/pi/recording/status');
+    return apiClient.post('/camera/recording/stop');
   },
 
   /**
@@ -43,7 +35,7 @@ export const piAPI = {
    * @returns {Promise} Axios response
    */
   getEvents: async (params = {}) => {
-    return apiClient.get('/pi/events', { params });
+    return apiClient.get('/camera/events', { params });
   },
 
   /**
@@ -51,9 +43,9 @@ export const piAPI = {
    * @returns {Promise} Axios response
    */
   getStatus: async () => {
-    return apiClient.get('/pi/status');
+    return apiClient.get('/camera/status');
   },
 };
 
-export default piAPI;
+export default cameraAPI;
 
