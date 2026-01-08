@@ -9,9 +9,6 @@ Author: Kristian Colville
 ![1767915565619](image/README/1767915565619.png)
 
 ## Presentation: https://iframe.mediadelivery.net/play/576582/6ffdfb02-97e0-4006-85c6-c4595eba6b6a
-<div style="position:relative;padding-top:56.25%;margin:2rem 0;">
-<iframe src="https://iframe.mediadelivery.net/embed/576582/6ffdfb02-97e0-4006-85c6-c4595eba6b6a?autoplay=false&loop=false&muted=false&preload=true&responsive=true" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe>
-</div>
 
 PiCam Guardian is an IoT-based smart home monitoring prototype that provides remote visibility into environmental conditions and activity using a Raspberry Pi with sensors and camera capabilities.
 
