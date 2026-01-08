@@ -67,7 +67,6 @@ class PiGuardHttpHandler {
                 }
                 catch (dbError) {
                     console.error('Failed to store file information:', dbError);
-                    // Continue even if database storage fails
                 }
             }
             res.json({ data: piResponse });
