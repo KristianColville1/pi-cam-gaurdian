@@ -17,30 +17,45 @@ let DocsController = class DocsController {
     async getOpenAPISpec(req, res) {
         return docsHttpHandler.getOpenAPISpec(req, res);
     }
+    async getPiGuardOpenAPISpec(req, res) {
+        return docsHttpHandler.getPiGuardOpenAPISpec(req, res);
+    }
 };
 __decorate([
-    route('get', '/openapi.json'),
+    route("get", "/openapi.json"),
     apiDoc({
-        summary: 'Get OpenAPI specification',
-        description: 'Returns the OpenAPI 3.1 specification for the API, generated from controller decorators.',
-        tags: ['Docs'],
-        operationId: 'getOpenAPISpec',
+        summary: "Get OpenAPI specification",
+        description: "Returns the OpenAPI 3.1 specification for the API, generated from controller decorators.",
+        tags: ["Docs"],
+        operationId: "getOpenAPISpec",
         responses: {
             200: {
-                description: 'OpenAPI specification',
+                description: "OpenAPI specification",
                 schema: {
-                    type: 'object',
+                    type: "object",
                 },
             },
-            500: { description: 'Internal server error' },
+            500: { description: "Internal server error" },
         },
     }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], DocsController.prototype, "getOpenAPISpec", null);
+__decorate([
+    route("get", "/pi-guard/openapi.json"),
+    apiDoc({
+        summary: "Get Pi Guard OpenAPI specification",
+        description: "Returns the OpenAPI 3.1 specification for the Pi Guard API, generated from controller decorators.",
+        tags: ["Docs"],
+        operationId: "getPiGuardOpenAPISpec",
+    }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], DocsController.prototype, "getPiGuardOpenAPISpec", null);
 DocsController = __decorate([
-    Controller('/docs')
+    Controller("/docs")
 ], DocsController);
 export default DocsController;
 //# sourceMappingURL=DocsController.js.map

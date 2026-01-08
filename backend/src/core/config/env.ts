@@ -27,5 +27,18 @@ export default {
 
   // Pi Guard API
   PI_GUARD_URL: process.env.PI_GUARD_URL,
+
+  // Bunny.net CDN Configuration
+  // Video CDN (recording bucket)
+  VIDEO_CDN_LIBRARY_ID: process.env.VIDEO_CDN_LIBRARY_ID,
+  VIDEO_CDN_HOST: process.env.VIDEO_CDN_HOST,
+  VIDEO_CDN_PULL_ZONE: process.env.VIDEO_CDN_PULL_ZONE,
+  VIDEO_CDN_API_KEY: process.env.VIDEO_CDN_API_KEY,
+  // Static Asset CDN (FTP)
+  CDN_USER: process.env.CDN_USER,
+  CDN_HOST: process.env.CDN_HOST,
+  CDN_PORT: process.env.CDN_PORT ? parseInt(process.env.CDN_PORT, 10) : 21,
+  CDN_CONNECTION_TYPE: process.env.CDN_CONNECTION_TYPE || 'PASSIVE',
+  CDN_PASS: process.env.CDN_PASS,
 };
 
