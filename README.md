@@ -1,10 +1,21 @@
+Author: Kristian Colville
+
+
 # PiCam Guardian
 
 **PiCam Guardian** | [Repository](https://github.com/KristianColville1/pi-cam-gaurdian)
 
 **Smart Home Safety & Monitoring System**
+![1767915565619](image/README/1767915565619.png)
+
+## Presentation: https://iframe.mediadelivery.net/play/576582/6ffdfb02-97e0-4006-85c6-c4595eba6b6a
+<div style="position:relative;padding-top:56.25%;margin:2rem 0;">
+<iframe src="https://iframe.mediadelivery.net/embed/576582/6ffdfb02-97e0-4006-85c6-c4595eba6b6a?autoplay=false&loop=false&muted=false&preload=true&responsive=true" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe>
+</div>
 
 PiCam Guardian is an IoT-based smart home monitoring prototype that provides remote visibility into environmental conditions and activity using a Raspberry Pi with sensors and camera capabilities.
+
+
 
 ---
 
@@ -153,6 +164,7 @@ The frontend follows **atomic design principles**, organizing components into hi
 ## Technologies & Tools
 
 **Frontend Technologies:**
+
 - React 19
 - Vite
 - React Bootstrap 2
@@ -163,6 +175,7 @@ The frontend follows **atomic design principles**, organizing components into hi
 - Bootstrap 5
 
 **Backend Technologies:**
+
 - Node.js
 - Express.js
 - TypeORM
@@ -173,6 +186,7 @@ The frontend follows **atomic design principles**, organizing components into hi
 - Dotenv
 
 **Raspberry Pi Application:**
+
 - Python 3
 - FastAPI
 - Uvicorn
@@ -182,6 +196,7 @@ The frontend follows **atomic design principles**, organizing components into hi
 - FFmpeg
 
 **Infrastructure & DevOps:**
+
 - Oracle Cloud Infrastructure (OCI)
 - Ubuntu 22.04 LTS
 - Nginx
@@ -194,6 +209,7 @@ The frontend follows **atomic design principles**, organizing components into hi
 - Bunny.net CDN (Storage Zones & Video Library)
 
 **Development Tools:**
+
 - Git
 - Visual Studio Code
 - ESLint
@@ -503,6 +519,7 @@ rsync -avz --exclude '.venv' --exclude '__pycache__' --exclude '*.pyc' kristian@
 **Note:** Replace `kristian` with your Pi username if different, and adjust the IP address (`192.168.178.99`) if your Pi's network address has changed.
 
 **Exclusions:**
+
 - `.venv` - Virtual environment folder
 - `__pycache__` - Python cache directories
 - `*.pyc` - Compiled Python files
