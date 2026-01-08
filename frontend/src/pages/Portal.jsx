@@ -15,9 +15,14 @@ import PortalContentTabs from '@components/organisms/PortalContentTabs';
 function Portal() {
   const [activeTab, setActiveTab] = useState('images');
   const [imageCaptured, setImageCaptured] = useState(0);
+  const [recordingStopped, setRecordingStopped] = useState(0);
 
   const handleImageCaptured = () => {
     setImageCaptured((prev) => prev + 1);
+  };
+
+  const handleRecordingStopped = () => {
+    setRecordingStopped((prev) => prev + 1);
   };
 
   const handleTabChange = (tab) => {
@@ -43,6 +48,7 @@ function Portal() {
                   <div className="mt-3">
                       <PortalActions 
                           onImageCaptured={handleImageCaptured}
+                          onRecordingStopped={handleRecordingStopped}
                           onTabChange={handleTabChange}
                       />
                   </div>
@@ -55,6 +61,7 @@ function Portal() {
                       activeTab={activeTab}
                       onTabChange={handleTabChange}
                       onImageCaptured={imageCaptured}
+                      onRecordingStopped={recordingStopped}
                   />
               </Col>
           </Row>

@@ -13,10 +13,11 @@ import {
  * PortalActions component
  * @param {Object} props - Component props
  * @param {Function} props.onImageCaptured - Callback when image is captured
+ * @param {Function} props.onRecordingStopped - Callback when recording is stopped
  * @param {Function} props.onTabChange - Callback to change active tab
  * @returns {JSX.Element} The PortalActions component
  */
-function PortalActions({ onImageCaptured, onTabChange }) {
+function PortalActions({ onImageCaptured, onRecordingStopped, onTabChange }) {
   const { triggerToast } = useToast();
   const [isRecording, setIsRecording] = useState(false);
   const [loading, setLoading] = useState({});
@@ -60,6 +61,12 @@ function PortalActions({ onImageCaptured, onTabChange }) {
     await cameraAPI.stopRecording();
     setIsRecording(false);
     triggerToast('success', 'Recording Stopped', 'Video recording has stopped');
+    if (onRecordingStopped) {
+      onRecordingStopped();
+    }
+    if (onTabChange) {
+      onTabChange('recordings');
+    }
   };
 
   const handleViewEvents = () => {
