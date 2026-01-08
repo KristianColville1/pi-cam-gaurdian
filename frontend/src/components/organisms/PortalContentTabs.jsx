@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Spinner } from 'react-bootstrap';
+import { Card, Spinner, Modal, Button } from 'react-bootstrap';
 import { cameraAPI } from '../../lib/api/camera';
 import { useStorage } from '../../hooks/useStorage';
-import { FaImage, FaVideo, FaHistory } from 'react-icons/fa';
+import { formatTimestamp } from '../../utils/date_utils';
+import { FaImage, FaVideo, FaHistory, FaEye } from 'react-icons/fa';
 import './PortalContentTabs.css';
 
 /**
@@ -19,6 +20,8 @@ function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'events') {
@@ -56,9 +59,21 @@ function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
     }
   };
 
-  const images = files || [];
+  const images = (files || []).filter(file => 
+    file.content_type && file.content_type.startsWith('image/')
+  );
   const isLoadingImages = loading.files || isCapturing;
   const isLoadingRecordings = loading.recordings;
+
+  const handleViewImage = (image) => {
+    setSelectedImage(image);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedImage(null);
+  };
 
   const tabs = [
     { key: 'images', label: 'Images', icon: FaImage },
@@ -101,24 +116,65 @@ function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
                 <small className="text-muted">Capture an image to see it here</small>
               </div>
             ) : (
-              <div className="d-grid gap-2">
-                {images.map((image) => (
-                  <div key={image.id} className="border rounded p-2">
-                    <img
-                      src={image.url || image.full_path}
-                      alt={image.object_name || `Image ${image.id}`}
-                      className="img-fluid rounded"
-                      style={{ maxHeight: '150px', width: '100%', objectFit: 'contain' }}
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                    <small className="text-muted d-block mt-1">
-                      {image.object_name || new Date(image.created_at).toLocaleString() || 'Unknown'}
-                    </small>
-                  </div>
-                ))}
-              </div>
+              <>
+                <div className="d-grid gap-2">
+                  {images.map((image) => (
+                    <div key={image.id} className="border rounded p-2">
+                      <div className="position-relative">
+                        <img
+                          src={image.url || image.full_path}
+                          alt={image.object_name || `Image ${image.id}`}
+                          className="img-fluid rounded"
+                          style={{ maxHeight: '150px', width: '100%', objectFit: 'contain', display: 'block' }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                      <div className="d-flex justify-content-between align-items-center mt-2">
+                        <small className="text-muted">
+                          {formatTimestamp(image.created_at)}
+                        </small>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() => handleViewImage(image)}
+                        >
+                          <FaEye className="me-1" />
+                          View
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Modal show={showModal} onHide={handleCloseModal} size="lg" centered>
+                  <Modal.Header closeButton>
+                    <Modal.Title>
+                      {selectedImage?.object_name || 'Image'}
+                    </Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body className="text-center">
+                    {selectedImage && (
+                      <img
+                        src={selectedImage.url || selectedImage.full_path}
+                        alt={selectedImage.object_name || 'Image'}
+                        className="img-fluid"
+                        style={{ maxHeight: '70vh', width: 'auto' }}
+                      />
+                    )}
+                    <div className="mt-3">
+                      <small className="text-muted">
+                        {selectedImage && formatTimestamp(selectedImage.created_at)}
+                      </small>
+                    </div>
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseModal}>
+                      Close
+                    </Button>
+                  </Modal.Footer>
+                </Modal>
+              </>
             )}
           </>
         )}
