@@ -36,9 +36,6 @@ PiCam Guardian is an IoT-based smart home monitoring prototype that provides rem
 * [System Design](#system-design)
 * [Database Design](#database-design)
 * [Development Log](#development-log)
-* [Testing](#testing)
-* [Bugs](#bugs)
-  * [Bug Details](#bug-details)
 * [Releases](#releases)
   * [Overview](#overview)
   * [Git Workflow](#git-workflow)
@@ -295,19 +292,24 @@ These logs are journal-style entries intended to give readers insight into the d
 
 ---
 
-## Testing
-
-## Bugs
-
-1: The camera falls over after a period of time, suspect its the ffmpeg process and checking the camera is actually available.
-
-### Bug Details
-
 ## Releases
 
 ### Overview
+This repository documents the iterative development of the Pi Guardian Full Stack system.
+
+Development follows a structured, branch-based workflow, progressing from initial Proof-of-Concepts (POCs) to full Releases. Each phase is tracked with dedicated branches and clear, incremental commits.
 
 ### Git Workflow
+
+Typical commands for managing branches:
+
+```bash
+git checkout -b branch_name
+git push --set-upstream origin branch_name
+git checkout main
+git pull origin branch_name
+git push origin main
+```
 
 ### Development Strategy
 
