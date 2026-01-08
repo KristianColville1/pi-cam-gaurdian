@@ -31,7 +31,9 @@ class DocsHttpHandler {
   async getPiGuardOpenAPISpec(req: Request, res: Response) {
     try {
       const spec = await fetch(`${env.PI_GUARD_URL}/openapi.json`);
-      res.json(spec);
+      // the spec is json, so we need to parse it and return it
+      const specJson = await spec.json();
+      res.json(specJson);
     } catch (error: any) {
       console.error('Failed to generate Pi Guard OpenAPI spec:', error);
       res.status(500).json({ 

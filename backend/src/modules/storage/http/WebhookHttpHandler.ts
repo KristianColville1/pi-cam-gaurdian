@@ -91,7 +91,7 @@ class WebhookHttpHandler {
     if (recording) {
       recording.status = 'finished';
       recording.video_library_id = videoLibraryId.toString();
-      recording.uploaded_at = new Date();
+        recording.uploaded_at = new Date();
       await RecordingRepository.save(recording);
     } else {
       recording = RecordingRepository.create({

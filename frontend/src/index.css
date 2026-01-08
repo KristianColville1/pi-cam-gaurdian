@@ -209,3 +209,7 @@ body.dark-mode {
 .opblock-section-header {
   background-color: var(--bs-body-bg-light) !important;
 }
+
+.version-stamp > pre {
+  color: var(--bs-body-bg) !important;
+}
