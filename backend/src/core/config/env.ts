@@ -22,7 +22,10 @@ export default {
   DB_LOGGING: process.env.DB_LOGGING === 'true' || false,
 
   // JWT
-  JWT_SECRET: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+  JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '24h',
+
+  // Pi Guard API
+  PI_GUARD_URL: process.env.PI_GUARD_URL,
 };
 
