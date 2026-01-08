@@ -1,14 +1,15 @@
 """Camera service with dual-stream support."""
 import logging
+import shutil
 import subprocess
 import time
 from pathlib import Path
 from typing import Optional
 from picamera2 import Picamera2
 from picamera2.encoders import H264Encoder
-from picamera2.outputs import FileOutput, Output
+from picamera2.outputs import Output
 from config import settings
-from modules.camera.utils import QueueOutput
+from modules.camera.utils import QueueOutput, ToggleOutput
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +26,10 @@ class CameraService:
         self._encoder: Optional[H264Encoder] = None
         self._encoder_output: Optional[QueueOutput] = None
         self._recording_encoder: Optional[H264Encoder] = None
-        self._recording_output: Optional[Output] = None
-        self._recording_file: Optional[Path] = None
-        self._final_mp4_path: Optional[Path] = None
+        self._recording_output: Optional[ToggleOutput] = None
+        self._recording_file: Optional[Path] = None  # Session output path
+        self._final_mp4_path: Optional[Path] = None  # Session MP4 path
+        self._persistent_recording_path: Optional[Path] = None  # Persistent file always written to
         self._running = False
         self._recording = False
     
@@ -54,17 +56,37 @@ class CameraService:
             )
             self.camera.configure(video_config)
             
-            # Create H.264 encoder for lores stream
+            # Create H.264 encoder for lores stream (streaming)
             self._encoder_output = QueueOutput(maxsize=1)
             self._encoder = H264Encoder(bitrate=settings.STREAM_BITRATE)
             self._encoder.output = self._encoder_output
             
-            # Start encoder and camera
+            # Create H.264 encoder for main stream (recording) - always running
+            self._persistent_recording_path = Path("/tmp/pi-guard-recording.h264")
+            self._persistent_recording_path.parent.mkdir(parents=True, exist_ok=True)
+            # Ensure file exists before creating ToggleOutput (FileOutput will open it)
+            self._persistent_recording_path.touch(exist_ok=True)
+            self._recording_output = ToggleOutput(str(self._persistent_recording_path))
+            self._recording_encoder = H264Encoder(bitrate=settings.STREAM_BITRATE)
+            self._recording_encoder.output = self._recording_output
+            
+            # Start streaming encoder
             self.camera.start_encoder(self._encoder)
+            
+
+            
+            # Disable recording output by default (encoder runs but frames are discarded)
+            self._recording_output.enabled = False
+            
+            # Start camera
             self.camera.start()
+            
+            # Start recording encoder (always running on main stream)
+            self.camera.start_recording(self._recording_encoder, self._recording_output, name="main")
             
             self._running = True
             logger.info(f"Camera started with dual streams: main=1920x1080, lores={stream_size}, bitrate={settings.STREAM_BITRATE}bps, framerate={settings.STREAM_FRAMERATE}fps")
+            logger.info(f"Recording encoder initialized (output disabled, persistent file: {self._persistent_recording_path})")
             
         except Exception as e:
             logger.error(f"Failed to start camera: {e}", exc_info=True)
@@ -83,8 +105,12 @@ class CameraService:
     
     def _cleanup(self):
         """Clean up camera resources."""
-        # Stop recording if active
-        self._stop_recording_internal()
+        # Disable recording output if active
+        if self._recording_output:
+            try:
+                self._recording_output.enabled = False
+            except Exception as e:
+                logger.warning(f"Error disabling recording output: {e}")
         
         try:
             if self.camera is not None:
@@ -92,12 +118,20 @@ class CameraService:
                     self.camera.stop()
                 if self._encoder is not None:
                     self.camera.stop_encoder(self._encoder)
+                if self._recording_encoder is not None:
+                    self.camera.stop_recording()
         except Exception as e:
             logger.error(f"Error cleaning up camera: {e}")
         finally:
             self.camera = None
             self._encoder = None
             self._encoder_output = None
+            self._recording_encoder = None
+            self._recording_output = None
+            self._recording_file = None
+            self._final_mp4_path = None
+            self._persistent_recording_path = None
+            self._recording = False
     
     def get_camera(self) -> Optional[Picamera2]:
         """Get the Picamera2 instance."""
@@ -171,7 +205,11 @@ class CameraService:
         return True
     
     def start_recording(self, file_path: Path) -> bool:
-        """Start recording video - records to H.264, converts to MP4 on stop."""
+        """
+        Start recording by enabling file output.
+        Recording encoder is always running, we just enable/disable file writing.
+        """
+        # Validate prerequisites first
         if not self._running or not self.camera or not self.camera.started:
             logger.error("Camera not started, cannot start recording")
             return False
@@ -180,54 +218,97 @@ class CameraService:
             logger.warning("Recording already in progress")
             return False
         
+        if not self._recording_output or not self._recording_encoder:
+            logger.error("Recording encoder not initialized")
+            return False
+        
         try:
             file_path = Path(file_path)
-            # Record to H.264 first (will convert to MP4 on stop)
+            # Determine session paths
             h264_path = file_path.with_suffix('.h264') if file_path.suffix == '.mp4' else file_path
-            h264_path.parent.mkdir(parents=True, exist_ok=True)
+            mp4_path = file_path.with_suffix('.mp4') if h264_path.suffix == '.h264' else file_path
             
-            # Create file output for recording (simple H.264 file)
-            self._recording_output = FileOutput(str(h264_path))
-            
-            # Create encoder for recording (using main stream - high res)
-            self._recording_encoder = H264Encoder(bitrate=settings.STREAM_BITRATE)
-            
-            # Use start_recording() for file recording (not start_encoder)
-            # This is the recommended API for recording to files
-            self.camera.start_recording(self._recording_encoder, self._recording_output)
-            
-            # Store both paths (H.264 for recording, MP4 for final output)
+            # Store session paths
             self._recording_file = h264_path
-            self._final_mp4_path = file_path.with_suffix('.mp4') if h264_path.suffix == '.h264' else file_path
+            self._final_mp4_path = mp4_path
+            
+            # Enable file output to actually start writing the h.264 file
+            # File already exists and is open by ToggleOutput - just enable writing
+            # Note: File gets cleared in stop_recording() after copying
+            self._recording_output.enabled = True
             
             # Verify that the file exists and is receiving data
-            if not self._verify_recording_file(h264_path):
-                logger.error(f"Recording file validation failed: {h264_path}")
-                self._stop_recording_internal()
+            if not self._verify_recording_file(self._persistent_recording_path):
+                logger.error(f"Recording file validation failed: {self._persistent_recording_path}")
+                self._recording_output.enabled = False
+                self._recording_file = None
+                self._final_mp4_path = None
                 return False
             
             self._recording = True
-            logger.info(f"Started recording to: {h264_path}")
+            logger.info(f"Started recording (writing to {self._persistent_recording_path}, will save to {h264_path} on stop)")
             return True
             
         except Exception as e:
             logger.error(f"Failed to start recording: {e}", exc_info=True)
-            self._stop_recording_internal()
+            if self._recording_output:
+                self._recording_output.enabled = False
+            self._recording_file = None
+            self._final_mp4_path = None
             return False
     
     def stop_recording(self) -> Optional[Path]:
-        """Stop recording, convert H.264 to MP4 with metadata, return MP4 path."""
+        """
+        Stop recording by disabling file output.
+        Copies persistent file to session path, converts to MP4, and clears file for next recording.
+        """
         if not self._recording:
             logger.warning("Not currently recording")
             return None
         
+        if not self._recording_output:
+            logger.error("Recording output not initialized")
+            return None
+        
+        # Disable file output (encoder stays running, just stops writing)
+        self._recording_output.enabled = False
+        
         h264_path = self._recording_file
         mp4_path = self._final_mp4_path
-        self._stop_recording_internal()
+        self._recording = False
         
-        if not h264_path or not h264_path.exists():
-            logger.error(f"H.264 recording file not found: {h264_path}")
+        # Copy persistent file to session path
+        if not self._persistent_recording_path or not self._persistent_recording_path.exists():
+            logger.error(f"Persistent recording file not found: {self._persistent_recording_path}")
+            self._recording_file = None
+            self._final_mp4_path = None
             return None
+        
+        file_size = self._persistent_recording_path.stat().st_size
+        if file_size < 100:
+            logger.error(f"Recording file too small: {self._persistent_recording_path} ({file_size} bytes)")
+            # Clear file for next recording
+            self._persistent_recording_path.unlink()
+            self._recording_file = None
+            self._final_mp4_path = None
+            return None
+        
+        # Copy persistent file to session path
+        try:
+            h264_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(self._persistent_recording_path, h264_path)
+            logger.debug(f"Copied recording from {self._persistent_recording_path} to {h264_path}")
+        except Exception as e:
+            logger.error(f"Failed to copy recording file: {e}")
+            self._recording_file = None
+            self._final_mp4_path = None
+            return None
+        
+        # Clear persistent file for next recording
+        try:
+            self._persistent_recording_path.unlink()
+        except Exception as e:
+            logger.warning(f"Failed to clear persistent recording file: {e}")
         
         # Convert H.264 to MP4 using ffmpeg (stream copy for efficiency)
         logger.info(f"Converting {h264_path} to MP4: {mp4_path}")
@@ -305,7 +386,7 @@ class CameraService:
         except Exception as e:
             logger.error(f"Error stopping recording: {e}")
         
-        # FileOutput doesn't need explicit close, but check anyway
+        # ToggleOutput (FileOutput) doesn't need explicit close, but check anyway
         if self._recording_output:
             try:
                 if hasattr(self._recording_output, 'close'):

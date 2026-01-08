@@ -3,9 +3,23 @@ import logging
 import queue
 import subprocess
 from pathlib import Path
-from picamera2.outputs import Output
+from typing import Optional
+from picamera2.outputs import Output, FileOutput
 
 logger = logging.getLogger(__name__)
+
+
+class ToggleOutput(FileOutput):
+    """File output that can be enabled/disabled to control frame writing."""
+    
+    def __init__(self, filename):
+        super().__init__(filename)
+        self.enabled = False
+    
+    def outputframe(self, frame, keyframe=True, timestamp=None, packet=None, audio=False):
+        """Only write frames when enabled."""
+        if self.enabled:
+            super().outputframe(frame, keyframe, timestamp, packet, audio)
 
 
 class QueueOutput(Output):
