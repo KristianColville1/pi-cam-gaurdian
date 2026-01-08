@@ -287,8 +287,13 @@ class CameraService:
         file_size = self._persistent_recording_path.stat().st_size
         if file_size < 100:
             logger.error(f"Recording file too small: {self._persistent_recording_path} ({file_size} bytes)")
-            # Clear file for next recording
-            self._persistent_recording_path.unlink()
+            # Truncate file for next recording (don't delete - FileOutput has it open)
+            try:
+                # Open in write mode to truncate file to 0 bytes
+                with open(self._persistent_recording_path, 'wb'):
+                    pass
+            except Exception as e:
+                logger.warning(f"Failed to truncate persistent recording file: {e}")
             self._recording_file = None
             self._final_mp4_path = None
             return None
@@ -304,11 +309,14 @@ class CameraService:
             self._final_mp4_path = None
             return None
         
-        # Clear persistent file for next recording
+        # Truncate persistent file for next recording (don't delete - FileOutput has it open)
         try:
-            self._persistent_recording_path.unlink()
+            # Open in write mode to truncate file to 0 bytes
+            with open(self._persistent_recording_path, 'wb'):
+                pass
+            logger.debug(f"Truncated persistent recording file for next recording")
         except Exception as e:
-            logger.warning(f"Failed to clear persistent recording file: {e}")
+            logger.warning(f"Failed to truncate persistent recording file: {e}")
         
         # Convert H.264 to MP4 using ffmpeg (stream copy for efficiency)
         logger.info(f"Converting {h264_path} to MP4: {mp4_path}")

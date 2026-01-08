@@ -29,9 +29,22 @@ class RecordingStatus(BaseModel):
     file_path: Optional[str] = None
 
 
-@router.get("/camera/capture", response_model=CaptureResponse)
+@router.get(
+    "/camera/capture",
+    response_model=CaptureResponse,
+    tags=["Camera"],
+    summary="Capture image from camera",
+    description="Capture a snapshot image from the Raspberry Pi camera. Returns the captured image file path or uploaded URL.",
+    response_description="Image capture response with file path or URL",
+    status_code=200,
+)
 async def capture_image(request: Request):
-    """Capture a snapshot image from the camera."""
+    """
+    Capture a snapshot image from the camera.
+    
+    Returns:
+        CaptureResponse: Response containing success status, file path, and optional URL if uploaded to storage.
+    """
     logger.info("Capture endpoint called")
     camera_service = getattr(request.app.state, 'camera_service', None)
     storage_service = getattr(request.app.state, 'storage_service', None)
@@ -90,9 +103,21 @@ async def capture_image(request: Request):
         raise HTTPException(status_code=500, detail=f"Failed to capture image: {str(e)}")
 
 
-@router.get("/camera/recording/start")
+@router.get(
+    "/camera/recording/start",
+    tags=["Camera"],
+    summary="Start video recording",
+    description="Start recording video from the Raspberry Pi camera. Recording will be saved as MP4 format.",
+    response_description="Recording start confirmation with file path",
+    status_code=200,
+)
 async def start_recording(request: Request):
-    """Start video recording."""
+    """
+    Start video recording.
+    
+    Returns:
+        dict: Response containing success status, message, and file path for the recording.
+    """
     camera_service = getattr(request.app.state, 'camera_service', None)
     storage_service = getattr(request.app.state, 'storage_service', None)
     
@@ -134,9 +159,22 @@ async def start_recording(request: Request):
         raise HTTPException(status_code=500, detail=f"Failed to start recording: {str(e)}")
 
 
-@router.get("/camera/recording/stop", response_model=CaptureResponse)
+@router.get(
+    "/camera/recording/stop",
+    response_model=CaptureResponse,
+    tags=["Camera"],
+    summary="Stop video recording",
+    description="Stop the current video recording and upload the MP4 file to storage. Returns the file path or uploaded URL.",
+    response_description="Recording stop response with file path or URL",
+    status_code=200,
+)
 async def stop_recording(request: Request):
-    """Stop video recording and upload MP4 to storage."""
+    """
+    Stop video recording and upload MP4 to storage.
+    
+    Returns:
+        CaptureResponse: Response containing success status, file path, and optional URL if uploaded to storage.
+    """
     camera_service = getattr(request.app.state, 'camera_service', None)
     storage_service = getattr(request.app.state, 'storage_service', None)
     
@@ -176,9 +214,22 @@ async def stop_recording(request: Request):
         raise HTTPException(status_code=500, detail=f"Failed to stop recording: {str(e)}")
 
 
-@router.get("/camera/recording/status", response_model=RecordingStatus)
+@router.get(
+    "/camera/recording/status",
+    response_model=RecordingStatus,
+    tags=["Camera"],
+    summary="Get recording status",
+    description="Get the current recording status indicating whether a recording is in progress.",
+    response_description="Current recording status",
+    status_code=200,
+)
 async def get_recording_status(request: Request):
-    """Get current recording status."""
+    """
+    Get current recording status.
+    
+    Returns:
+        RecordingStatus: Response containing recording status (is_recording boolean).
+    """
     camera_service = getattr(request.app.state, 'camera_service', None)
     
     if not camera_service:
@@ -187,19 +238,4 @@ async def get_recording_status(request: Request):
     is_recording = camera_service.is_recording()
     return RecordingStatus(is_recording=is_recording)
 
-
-@router.get("/camera/image/{filename}")
-async def get_image(request: Request, filename: str):
-    """Get a captured image file (if not yet uploaded)."""
-    storage_service = getattr(request.app.state, 'storage_service', None)
-    
-    if not storage_service:
-        raise HTTPException(status_code=503, detail="Storage service not available")
-    
-    file_path = storage_service.get_tmp_path(filename)
-    
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Image not found")
-    
-    return FileResponse(file_path, media_type="image/jpeg")
 

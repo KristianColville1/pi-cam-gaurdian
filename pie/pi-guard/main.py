@@ -31,6 +31,9 @@ app = FastAPI(
     description="Guardian service for Pi Camera and Sense HAT sensors",
     version=settings.APP_VERSION,
     debug=settings.DEBUG,
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
 )
 
 # Expose services for routes (services are started externally)
