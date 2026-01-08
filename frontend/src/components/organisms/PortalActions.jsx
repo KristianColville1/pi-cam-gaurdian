@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { ButtonGroup, Button, Spinner } from 'react-bootstrap';
 import { useToast } from '@hooks/useToast';
+import { useRecording } from '../../contexts/RecordingContext';
 import { cameraAPI } from '../../lib/api/camera';
 import { 
   FaCamera, 
   FaVideo, 
-  FaStop, 
-  FaHistory
+  FaStop
 } from 'react-icons/fa';
 
 /**
@@ -14,12 +14,11 @@ import {
  * @param {Object} props - Component props
  * @param {Function} props.onImageCaptured - Callback when image is captured
  * @param {Function} props.onRecordingStopped - Callback when recording is stopped
- * @param {Function} props.onTabChange - Callback to change active tab
  * @returns {JSX.Element} The PortalActions component
  */
-function PortalActions({ onImageCaptured, onRecordingStopped, onTabChange }) {
+function PortalActions({ onImageCaptured, onRecordingStopped }) {
   const { triggerToast } = useToast();
-  const [isRecording, setIsRecording] = useState(false);
+  const { isRecording, startRecording, stopRecording } = useRecording();
   const [loading, setLoading] = useState({});
 
   const handleAction = async (actionName, actionFn) => {
@@ -43,35 +42,20 @@ function PortalActions({ onImageCaptured, onRecordingStopped, onTabChange }) {
     if (onImageCaptured) {
       onImageCaptured();
     }
-    if (onTabChange) {
-      onTabChange('images');
-    }
   };
 
   const handleStartRecording = async () => {
     await cameraAPI.startRecording();
-    setIsRecording(true);
+    startRecording();
     triggerToast('success', 'Recording Started', 'Video recording has started');
-    if (onTabChange) {
-      onTabChange('recordings');
-    }
   };
 
   const handleStopRecording = async () => {
     await cameraAPI.stopRecording();
-    setIsRecording(false);
+    stopRecording();
     triggerToast('success', 'Recording Stopped', 'Video recording has stopped');
     if (onRecordingStopped) {
       onRecordingStopped();
-    }
-    if (onTabChange) {
-      onTabChange('recordings');
-    }
-  };
-
-  const handleViewEvents = () => {
-    if (onTabChange) {
-      onTabChange('events');
     }
   };
 
@@ -79,7 +63,7 @@ function PortalActions({ onImageCaptured, onRecordingStopped, onTabChange }) {
     <div className="d-flex flex-column gap-2">
       <ButtonGroup size="lg" className="flex-wrap rounded-0">
         <Button
-          variant="danger"
+          variant="outline-danger"
           onClick={() => handleAction('capture', handleCaptureImage)}
           disabled={loading.capture}
           className="rounded-0"
@@ -93,7 +77,7 @@ function PortalActions({ onImageCaptured, onRecordingStopped, onTabChange }) {
         </Button>
         {isRecording ? (
           <Button
-            variant="danger"
+            variant="outline-danger"
             onClick={() => handleAction('stopRecording', handleStopRecording)}
             disabled={loading.stopRecording}
             className="rounded-0"
@@ -107,7 +91,7 @@ function PortalActions({ onImageCaptured, onRecordingStopped, onTabChange }) {
           </Button>
         ) : (
           <Button
-            variant="success"
+            variant="outline-success"
             onClick={() => handleAction('startRecording', handleStartRecording)}
             disabled={loading.startRecording}
             className="rounded-0"
@@ -120,14 +104,6 @@ function PortalActions({ onImageCaptured, onRecordingStopped, onTabChange }) {
             Record
           </Button>
         )}
-        <Button
-          variant="info"
-          onClick={handleViewEvents}
-          className="rounded-0"
-        >
-          <FaHistory className="me-1" />
-          Events
-        </Button>
       </ButtonGroup>
     </div>
   );

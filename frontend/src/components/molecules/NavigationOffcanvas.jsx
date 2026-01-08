@@ -25,10 +25,11 @@ function NavigationOffcanvas({ show, onHide, onLoginClick }) {
     { path: '/', label: 'Home' },
   ];
 
-  // Add Portal and Metrics History links only if authenticated
+  // Add Portal, Metrics History, and Storage links only if authenticated
   if (isAuthenticated) {
     navLinks.push({ path: '/portal', label: 'Portal' });
     navLinks.push({ path: '/metrics-history', label: 'Metrics History' });
+    navLinks.push({ path: '/storage', label: 'Storage' });
   }
 
   return (
@@ -51,6 +52,9 @@ function NavigationOffcanvas({ show, onHide, onLoginClick }) {
             <NavDropdown title="APIs" id="apis-dropdown-mobile" className="mb-2">
               <NavDropdown.Item as={Link} to="/api-docs" onClick={onHide}>
                 Backend API
+              </NavDropdown.Item>
+              <NavDropdown.Item as={Link} to="/api-docs/pi-guard" onClick={onHide}>
+                Pi Guard API
               </NavDropdown.Item>
             </NavDropdown>
           )}

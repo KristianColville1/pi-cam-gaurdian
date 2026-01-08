@@ -11,8 +11,11 @@ export const ApiDocsContext = createContext();
  */
 export const ApiDocsProvider = ({ children }) => {
   const [spec, setSpec] = useState(null);
+  const [piGuardSpec, setPiGuardSpec] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [piGuardLoading, setPiGuardLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [piGuardError, setPiGuardError] = useState(null);
 
   const fetchApiDocs = useCallback(async () => {
     setLoading(true);
@@ -28,6 +31,20 @@ export const ApiDocsProvider = ({ children }) => {
     }
   }, []);
 
+  const fetchPiGuardApiDocs = useCallback(async () => {
+    setPiGuardLoading(true);
+    setPiGuardError(null);
+    try {
+      const response = await apiClient.get('/docs/pi-guard/openapi.json');
+      setPiGuardSpec(response.data);
+    } catch (err) {
+      console.error('Failed to fetch Pi Guard API docs:', err);
+      setPiGuardError(err.response?.data?.message || err.message || 'Failed to load Pi Guard API documentation');
+    } finally {
+      setPiGuardLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     // Optionally fetch on mount, or let components trigger it
     // fetchApiDocs();
@@ -35,10 +52,15 @@ export const ApiDocsProvider = ({ children }) => {
 
   const value = {
     spec,
+    piGuardSpec,
     loading,
+    piGuardLoading,
     error,
+    piGuardError,
     fetchApiDocs,
+    fetchPiGuardApiDocs,
     refetch: fetchApiDocs,
+    refetchPiGuard: fetchPiGuardApiDocs,
   };
 
   return <ApiDocsContext.Provider value={value}>{children}</ApiDocsContext.Provider>;

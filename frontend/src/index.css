@@ -93,11 +93,39 @@ body.dark-mode {
   color: #000000 !important;
 }
 
+.btn-outline-success {
+  border-color: #0ff087 !important;
+  color: #0ff087 !important;
+}
+
+.btn-outline-success:hover {
+  background-color: #0ff087 !important;
+  color: #000000 !important;
+}
 .bg-danger, .btn-danger {
   background-color: #ff0000 !important;
   color: #ffffff !important;
 }
 
+.btn-outline-danger {
+  border-color: #ff0000 !important;
+  color: #ff0000 !important;
+}
+
+.btn-outline-danger:hover {
+  background-color: #ff0000 !important;
+  color: #ffffff !important;
+}
+
+.btn-outline-info {
+  border-color: #007bff !important;
+  color: #007bff !important;
+}
+
+.btn-outline-info:hover {
+  background-color: #007bff !important;
+  color: #ffffff !important;
+}
 /* Table adjustments for dark mode */
 .table {
   --bs-table-bg: var(--bs-body-bg);

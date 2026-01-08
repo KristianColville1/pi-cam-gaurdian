@@ -8,11 +8,13 @@ import { SensorDataProvider } from "./SensorDataContext";
 import { ApiDocsProvider } from "./ApiDocsContext";
 import { HistoricalMetricsProvider } from "./HistoricalMetricsContext";
 import { StorageProvider } from "./StorageContext";
+import { RecordingProvider } from "./RecordingContext";
 
 const providers = [
     ThemeProvider,
     AuthProvider,
     ToastProvider,
+    RecordingProvider,
     SensorDataProvider,
     ApiDocsProvider,
     HistoricalMetricsProvider,

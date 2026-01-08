@@ -31,7 +31,7 @@ function SensorMetrics() {
       </Card.Header>
       <Card.Body>
         <Row className="g-3">
-          <Col xs={12} sm={6} lg={6}>
+          <Col xs={6} lg={6}>
             <MetricCard
               title="Temperature (H)"
               value={metrics.temp_humidity}
@@ -40,7 +40,7 @@ function SensorMetrics() {
               color="danger"
             />
           </Col>
-          <Col xs={12} sm={6} lg={6}>
+          <Col xs={6} lg={6}>
             <MetricCard
               title="Temperature (P)"
               value={metrics.temp_pressure}
@@ -49,7 +49,7 @@ function SensorMetrics() {
               color="warning"
             />
           </Col>
-          <Col xs={12} sm={6} lg={6}>
+          <Col xs={6} lg={6}>
             <MetricCard
               title="Humidity"
               value={metrics.humidity}
@@ -58,7 +58,7 @@ function SensorMetrics() {
               color="info"
             />
           </Col>
-          <Col xs={12} sm={6} lg={6}>
+          <Col xs={6} lg={6}>
             <MetricCard
               title="Pressure"
               value={metrics.pressure}
@@ -67,7 +67,7 @@ function SensorMetrics() {
               color="primary"
             />
           </Col>
-          <Col xs={12} sm={6} lg={6}>
+          <Col xs={6} lg={6}>
             <MetricCard
               title="Pitch"
               value={metrics.pitch}
@@ -76,7 +76,7 @@ function SensorMetrics() {
               color="secondary"
             />
           </Col>
-          <Col xs={12} sm={6} lg={6}>
+          <Col xs={6} lg={6}>
             <MetricCard
               title="Roll"
               value={metrics.roll}
@@ -85,7 +85,7 @@ function SensorMetrics() {
               color="secondary"
             />
           </Col>
-          <Col xs={12} sm={6} lg={6}>
+          <Col xs={6} lg={6}>
             <MetricCard
               title="Yaw"
               value={metrics.yaw}
@@ -94,7 +94,7 @@ function SensorMetrics() {
               color="secondary"
             />
           </Col>
-          <Col xs={12} sm={6} lg={6}>
+          <Col xs={6} lg={6}>
             <MetricCard
               title="Acceleration"
               value={

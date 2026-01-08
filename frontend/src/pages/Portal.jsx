@@ -13,20 +13,12 @@ import PortalContentTabs from '@components/organisms/PortalContentTabs';
  * @description Displays the portal page for the PiCam Guardian application.
  */
 function Portal() {
-  const [activeTab, setActiveTab] = useState('images');
-  const [imageCaptured, setImageCaptured] = useState(0);
-  const [recordingStopped, setRecordingStopped] = useState(0);
-
   const handleImageCaptured = () => {
-    setImageCaptured((prev) => prev + 1);
+    // Image capture handled elsewhere
   };
 
   const handleRecordingStopped = () => {
-    setRecordingStopped((prev) => prev + 1);
-  };
-
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
+    // Recording stop handled elsewhere
   };
 
   return (
@@ -46,23 +38,15 @@ function Portal() {
               <Col lg={6}>
                   <VideoStream />
                   <div className="mt-3">
-                      <PortalActions 
+                      <PortalActions
                           onImageCaptured={handleImageCaptured}
                           onRecordingStopped={handleRecordingStopped}
-                          onTabChange={handleTabChange}
                       />
-                  </div>
-                  <div className="mt-3">
-                      <SensorMetrics />
+                      <PortalContentTabs />
                   </div>
               </Col>
               <Col lg={6}>
-                  <PortalContentTabs 
-                      activeTab={activeTab}
-                      onTabChange={handleTabChange}
-                      onImageCaptured={imageCaptured}
-                      onRecordingStopped={recordingStopped}
-                  />
+                  <SensorMetrics onRecordingStopped={handleRecordingStopped} />
               </Col>
           </Row>
 
