@@ -65,6 +65,13 @@ function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
   const isLoadingImages = loading.files || isCapturing;
   const isLoadingRecordings = loading.recordings;
 
+  const CDN_BASE_URL = 'https://pi-guardian.b-cdn.net/';
+
+  const getImageUrl = (image) => {
+    if (!image.path) return '';
+    return `${CDN_BASE_URL}${image.path}`;
+  };
+
   const handleViewImage = (image) => {
     setSelectedImage(image);
     setShowModal(true);
@@ -122,7 +129,7 @@ function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
                     <div key={image.id} className="border rounded p-2">
                       <div className="position-relative">
                         <img
-                          src={image.url || image.full_path}
+                          src={getImageUrl(image)}
                           alt={image.object_name || `Image ${image.id}`}
                           className="img-fluid rounded"
                           style={{ maxHeight: '150px', width: '100%', objectFit: 'contain', display: 'block' }}
@@ -156,7 +163,7 @@ function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
                   <Modal.Body className="text-center">
                     {selectedImage && (
                       <img
-                        src={selectedImage.url || selectedImage.full_path}
+                        src={getImageUrl(selectedImage)}
                         alt={selectedImage.object_name || 'Image'}
                         className="img-fluid"
                         style={{ maxHeight: '70vh', width: 'auto' }}
