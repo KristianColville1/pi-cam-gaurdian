@@ -20,10 +20,6 @@ Security considerations for PiCam Guardian are currently minimal as the system i
 - **Open Access**: Video streams and sensor data are publicly accessible
 - **No Encryption**: Data transmission occurs over unencrypted channels
 
-## Security Diagram
-
-*[Placeholder for security architecture diagram showing: current security boundaries, attack surfaces, planned security enhancements]*
-
 ## Planned Security Enhancements
 
 ### Authentication & Authorization

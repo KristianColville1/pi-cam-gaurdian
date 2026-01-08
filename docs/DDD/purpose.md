@@ -23,11 +23,15 @@ The database implementation uses:
 
 ## Current Implementation Status
 
-The database is currently in initial development phase with a single entity:
+The database contains five entities (as of Release 3):
 
-- **User Entity** - Complete implementation for user authentication and management
+- **User Entity** - User authentication and management
+- **Device Entity** - Registered monitoring devices (Raspberry Pi devices)
+- **SensorMetric Entity** - Historical sensor data from Sense HAT
+- **File Entity** - Image files stored in Bunny.net CDN
+- **Recording Entity** - Video recordings stored in Bunny.net video library
 
-Future entities for sensor data, sessions, and other features are planned for subsequent releases.
+All entities support soft deletes, audit timestamps, and are fully integrated with the application's storage and metrics modules.
 
 ---
 

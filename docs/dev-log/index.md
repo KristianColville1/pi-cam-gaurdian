@@ -15,3 +15,6 @@
 - [02-01-2026](./02-01-2026.md) - Frontend Design & Development
 - [03-01-2026](./03-01-2026.md) - Raspberry Pi Application Upgrade & Unified Architecture
 - [04-01-2026](./04-01-2026.md) - CI/CD Pipeline Setup & Frontend Navigation Improvements
+- [06-01-2026](./06-01-2026.md) - Camera Stability Improvements & Backend TypeScript Migration
+- [07-01-2026](./07-01-2026.md) - CDN Integration Setup & Camera Service Development
+- [08-01-2026](./08-01-2026.md) - Recording Pattern Implementation & Storage Module Completion

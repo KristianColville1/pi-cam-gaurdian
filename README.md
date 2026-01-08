@@ -191,6 +191,7 @@ The frontend follows **atomic design principles**, organizing components into hi
 - GitHub Actions (CI/CD)
 - systemd
 - iptables
+- Bunny.net CDN (Storage Zones & Video Library)
 
 **Development Tools:**
 - Git
@@ -238,6 +239,18 @@ The frontend follows **atomic design principles**, organizing components into hi
 - Enhanced user interface and user experience features
 
 ### Release 3
+
+**Media Capture, Storage & Management**
+
+- Image capture functionality from Raspberry Pi camera
+- Video recording capabilities with multi-channel streaming
+- Bunny.net CDN integration for media storage (static assets and video library)
+- Storage management system with File and Recording entities
+- Webhook integration for recording status updates from Bunny.net
+- Storage management interface with pagination, filtering, and editing capabilities
+- Remote camera control through backend API integration
+- Media metadata tracking (file size, duration, status, timestamps)
+- Unified camera service architecture with pause recording pattern for stability
 
 ## System Design
 
@@ -402,6 +415,36 @@ Release 2 provides a fully functional public-facing web application accessible a
 The database infrastructure and authentication system established in Release 2 provides the foundation for data persistence, historical data storage, user management, and advanced features planned for Release 3. The production deployment pipeline and infrastructure are now established for continued development and deployment.
 
 #### Release 3
+
+Successfully implemented media capture, storage infrastructure, and content management capabilities. Release 3 builds upon the production-ready foundation from Release 2 by adding comprehensive media capture functionality, CDN integration, and storage management features that enable users to capture, store, and manage images and video recordings.
+
+**Achievements:**
+
+- **Backend TypeScript Migration**: Converted Express.js backend from JavaScript to TypeScript, maintaining loose typing approach for minimal codebase complexity while gaining type safety benefits, updated build configuration and route detection for TypeScript file extensions
+- **Database Entities**: Implemented File and Recording entities with TypeORM schemas, supporting metadata storage for images and video recordings including file paths, CDN URLs, sizes, durations, status tracking, and soft delete capabilities
+- **CDN Infrastructure**: Integrated Bunny.net CDN service with storage zone (pi-guardian) for static asset hosting, video library (pi-guardian-recordings) for video storage and streaming, pull zone configuration (pi-guardian.b-cdn.net) for content delivery, webhook endpoint setup for recording status updates
+- **Raspberry Pi Camera Integration**: Implemented FastAPI-based camera service with unified process management, image capture functionality with automatic upload to Bunny.net storage, video recording with multi-channel streaming support, pause recording pattern to prevent camera interruptions, FFmpeg integration for video encoding and containerization, remote API access via No-IP dynamic DNS
+- **Storage Module**: Created comprehensive storage module with repository pattern (FileRepository, RecordingRepository), HTTP handlers for CRUD operations, controller endpoints with OpenAPI documentation, PATCH endpoints for updating file and recording metadata, webhook handler for recording status updates from Bunny.net, BunnyManager for fetching video metadata (file size, duration) from CDN API
+- **Frontend Storage Management**: Developed Storage page with tabbed interface (Files, Recordings), responsive tables with pagination (max 10 rows per page), filtering capabilities (file type, status, sorting options), edit functionality with modal dialogs for renaming recordings, view modals for images and video playback, delete functionality with confirmation dialogs, Bootstrap table components with button groups for actions
+- **API Integration**: Created storage API client with full CRUD operations, integrated PATCH endpoints for metadata updates, webhook endpoint for Bunny.net status callbacks, Pi Guard API documentation page, camera control API endpoints (capture, record, stop)
+- **Portal Enhancements**: Added Actions dropdown to navigation for global camera controls, simplified Portal content tabs to focus on Events, improved UI with consistent button styling and responsive design, integrated camera actions with recording state management via context
+- **Recording Status Management**: Implemented status code mapping (0-5: Queued, Processing, Encoding, Finished, Resolution Finished, Failed), automatic metadata fetching from Bunny.net on status updates, unified webhook handler to process all status codes, recording state synchronization across components via React context
+
+**Current State:**
+
+Release 3 provides a complete media capture and management system. Users can remotely capture images and record videos from the Raspberry Pi camera, with all media automatically uploaded to Bunny.net CDN. The storage management interface allows users to view, filter, edit, and delete files and recordings with a modern, responsive UI. Recording status updates are automatically processed via webhooks, and video metadata (size, duration) is fetched from Bunny.net API.
+
+**Technical Highlights:**
+
+- **Multi-Channel Camera Architecture**: Implemented pause recording pattern to maintain camera stability, enabling seamless switching between live streaming, image capture, and video recording without camera interruptions
+- **CDN Integration**: Full integration with Bunny.net for both static asset storage (images) and video library (recordings), with automatic upload, webhook status updates, and metadata synchronization
+- **Modular Backend Architecture**: Storage module follows repository pattern with clean separation of concerns, manager layer for external API interactions, and consistent error handling
+- **TypeScript Migration**: Backend converted to TypeScript with minimal complexity, maintaining development velocity while gaining type safety benefits
+- **Production-Ready Storage Management**: Complete CRUD operations, pagination, filtering, and editing capabilities with intuitive UI and proper error handling
+
+**Prepared for Future Releases:**
+
+The media capture and storage infrastructure established in Release 3 provides the foundation for advanced features such as scheduled recordings, motion detection triggers, automated archival, enhanced analytics, and expanded media processing capabilities. The CDN integration and webhook system enable real-time status updates and scalable media delivery.
 
 ## Development & Deployment
 

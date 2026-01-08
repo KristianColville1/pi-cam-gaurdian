@@ -24,7 +24,7 @@ TypeORM is configured in `backend/src/core/config/database.js` with the followin
 - **Database Path**: Relative path to `db.sqlite3` in the backend directory
 - **Synchronize**: Enabled for development (automatically creates/updates schema)
 - **Logging**: Enabled for development debugging
-- **Entities**: Array of entity schemas (currently just User entity)
+- **Entities**: Array of entity schemas (User, Device, SensorMetric, File, Recording)
 
 ### Backend Architecture
 
@@ -53,11 +53,15 @@ npm run init-db
 
 ## Current Schema
 
-The database currently contains a single table:
+The database contains five tables (as of Release 3):
 
-- **user** - Stores user account information for authentication
+- **user** - User account information for authentication and user management
+- **device** - Registered monitoring devices (Raspberry Pi devices with metadata)
+- **sensor_metric** - Historical sensor data readings from Sense HAT
+- **file** - Image files stored in Bunny.net CDN storage zones
+- **recording** - Video recordings stored in Bunny.net video library
 
-Future tables will be added for sensor data storage, session management, and other features as the system evolves.
+All tables support soft deletes, audit timestamps (created_at, updated_at, deleted_at), and include appropriate indexes for query performance.
 
 ---
 

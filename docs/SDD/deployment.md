@@ -8,7 +8,7 @@ PiCam Guardian is deployed across two primary environments: the Raspberry Pi edg
 
 ## Deployment Architecture Diagram
 
-*[Placeholder for deployment architecture diagram showing: Raspberry Pi deployment, Cloud server deployment, service configurations]*
+![1767909800950](image/deployment/1767909800950.png)
 
 ## Raspberry Pi Deployment
 

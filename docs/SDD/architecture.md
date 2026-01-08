@@ -7,25 +7,27 @@
 PiCam Guardian follows a client-server architecture with three primary components:
 
 1. **Raspberry Pi (Edge Device)**
+
    - Camera module for video capture
    - Sense HAT for environmental and motion sensor data
    - Local services for data collection and transmission
-
 2. **Cloud Server (Oracle Cloud Free Tier)**
+
    - MediaMTX server for RTSP/WebRTC video streaming
    - Mosquitto MQTT broker for sensor data messaging
    - Web server hosting frontend interface
-
 3. **Frontend Client**
+
    - Web browser-based interface
    - Real-time video playback via WebRTC
    - Real-time sensor data display via MQTT WebSocket
 
 ## System Architecture Diagram
 
-*[Placeholder for architecture diagram showing: Raspberry Pi → Cloud Server → Frontend with data flow paths]*
+![1767909284622](image/architecture/1767909284622.png)
 
 The architecture diagram will illustrate:
+
 - Raspberry Pi with camera and Sense HAT components
 - Network connections to cloud server
 - Cloud server components (MediaMTX, Mosquitto, Web Server)
