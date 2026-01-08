@@ -1,6 +1,7 @@
 """Storage service for uploading files to Bunny.net."""
 import asyncio
 import logging
+import shutil
 from pathlib import Path
 from typing import Optional, Dict
 from datetime import datetime

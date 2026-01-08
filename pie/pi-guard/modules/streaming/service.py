@@ -45,10 +45,16 @@ class StreamingService:
         self._shutdown_event.clear()
         
         # Start async streaming task
-        loop = asyncio.get_event_loop()
-        self._stream_task = loop.create_task(self._stream_loop())
-        
-        logger.info("Streaming service started")
+        # In FastAPI startup, the event loop is already running
+        # Use get_running_loop() to get the current running loop
+        try:
+            loop = asyncio.get_running_loop()
+            self._stream_task = loop.create_task(self._stream_loop())
+            logger.info("Streaming service started")
+        except RuntimeError:
+            # No event loop running - this shouldn't happen in FastAPI, but handle gracefully
+            logger.warning("No running event loop found for streaming service")
+            self._stream_task = None
     
     def stop(self):
         """Stop the streaming service."""
@@ -237,29 +243,13 @@ class StreamingService:
         return False
     
     async def _handle_no_frame(self, current_time: float, encoder_output, health_monitor: StreamHealthMonitor):
-        """Handle case when no frame is available from encoder. Returns new encoder_output if camera was restarted."""
+        """Handle case when no frame is available from encoder."""
         if health_monitor.check_frame_timeout(current_time):
-            return await self._restart_camera(health_monitor)
+            logger.warning("No frames from camera encoder - camera may be stalled, but continuing...")
+            health_monitor.reset_frame_timer()  # Reset timer to avoid constant warnings
         
         await asyncio.sleep(0.01)
         return None
-    
-    async def _restart_camera(self, health_monitor: StreamHealthMonitor):
-        """Restart camera service when no frames are received. Returns new encoder_output."""
-        logger.warning("No frames from camera encoder, restarting camera...")
-        
-        try:
-            self.camera_service.stop()
-            await asyncio.sleep(0.5)
-            self.camera_service.start()
-            encoder_output = self.camera_service.get_encoder_output()
-            health_monitor.reset_frame_timer()
-            logger.info("Camera service restarted successfully")
-            return encoder_output
-        except Exception as e:
-            logger.error(f"Error restarting camera: {e}", exc_info=True)
-            await asyncio.sleep(1)
-            return None
     
     async def _wait_for_restart(self, restart_count: int) -> bool:
         """Wait before restarting. Returns False if shutdown requested."""
