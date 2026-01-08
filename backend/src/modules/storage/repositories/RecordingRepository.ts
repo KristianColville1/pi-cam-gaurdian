@@ -95,6 +95,22 @@ class RecordingRepository {
       where: { video_id: videoId, deleted_at: null },
     });
   }
+
+  async updateMetadata(id: string, data: { file_size?: number; duration?: number }) {
+    const recording = await this.findById(id);
+    if (!recording) {
+      return null;
+    }
+
+    if (data.file_size !== undefined) {
+      recording.file_size = data.file_size;
+    }
+    if (data.duration !== undefined) {
+      recording.duration = data.duration;
+    }
+
+    return this.repository.save(recording);
+  }
 }
 
 export default new RecordingRepository();

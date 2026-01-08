@@ -81,6 +81,31 @@ class StorageHttpHandler {
     }
   }
 
+  async patchFile(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { title } = req.body;
+
+      if (!title) {
+        return res.status(400).json({ error: 'Title is required' });
+      }
+
+      const updatedFile = await fileRepository.update(id, { object_name: title });
+
+      if (!updatedFile) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+
+      res.json({
+        message: 'File name updated successfully',
+        data: updatedFile,
+      });
+    } catch (error: any) {
+      console.error('Patch file error:', error);
+      res.status(500).json({ error: 'Internal server error', message: error.message });
+    }
+  }
+
   async deleteFile(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -180,6 +205,31 @@ class StorageHttpHandler {
       });
     } catch (error: any) {
       console.error('Update recording error:', error);
+      res.status(500).json({ error: 'Internal server error', message: error.message });
+    }
+  }
+
+  async patchRecording(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const { title } = req.body;
+
+      if (!title) {
+        return res.status(400).json({ error: 'Title is required' });
+      }
+
+      const updatedRecording = await recordingRepository.update(id, { title });
+
+      if (!updatedRecording) {
+        return res.status(404).json({ error: 'Recording not found' });
+      }
+
+      res.json({
+        message: 'Recording name updated successfully',
+        data: updatedRecording,
+      });
+    } catch (error: any) {
+      console.error('Patch recording error:', error);
       res.status(500).json({ error: 'Internal server error', message: error.message });
     }
   }

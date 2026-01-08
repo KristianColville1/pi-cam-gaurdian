@@ -88,6 +88,26 @@ export const storageAPI = {
     const response = await apiClient.delete(`/storage/recordings/${id}`);
     return response.data;
   },
+
+  /**
+   * Patch recording name (update title only)
+   * @param {string} id - Recording ID
+   * @param {string} title - New title/name
+   */
+  patchRecording: async (id, title) => {
+    const response = await apiClient.patch(`/storage/recordings/${id}`, { title });
+    return response.data;
+  },
+
+  /**
+   * Patch file name (update title only)
+   * @param {string} id - File ID
+   * @param {string} title - New title/name
+   */
+  patchFile: async (id, title) => {
+    const response = await apiClient.patch(`/storage/files/${id}`, { title });
+    return response.data;
+  },
 };
 
 export default storageAPI;

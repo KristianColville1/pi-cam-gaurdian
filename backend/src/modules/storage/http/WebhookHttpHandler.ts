@@ -1,162 +1,23 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../../../core/config/database.js';
 import { Recording } from '../entities/Recording.entity.js';
+import bunnyManager from '../managers/BunnyManager.js';
 
 class WebhookHttpHandler {
   /**
-   * Handle status 0 - Queued
+   * Status code to status string mapping
    */
-  async handleQueued(videoGuid: string, videoLibraryId: number) {
-    const RecordingRepository = AppDataSource.getRepository(Recording);
-    
-    let recording = await RecordingRepository.findOne({
-      where: { video_id: videoGuid },
-    });
-
-    if (recording) {
-      recording.status = 'queued';
-      recording.video_library_id = videoLibraryId.toString();
-      await RecordingRepository.save(recording);
-    } else {
-      recording = RecordingRepository.create({
-        video_id: videoGuid,
-        guid: videoGuid,
-        video_library_id: videoLibraryId.toString(),
-        status: 'queued',
-      });
-      await RecordingRepository.save(recording);
-    }
-  }
+  private statusMap: Record<number, string> = {
+    0: 'queued',
+    1: 'processing',
+    2: 'encoding',
+    3: 'finished',
+    4: 'resolution_finished',
+    5: 'failed',
+  };
 
   /**
-   * Handle status 1 - Processing
-   */
-  async handleProcessing(videoGuid: string, videoLibraryId: number) {
-    const RecordingRepository = AppDataSource.getRepository(Recording);
-    
-    let recording = await RecordingRepository.findOne({
-      where: { video_id: videoGuid },
-    });
-
-    if (recording) {
-      recording.status = 'processing';
-      recording.video_library_id = videoLibraryId.toString();
-      await RecordingRepository.save(recording);
-    } else {
-      recording = RecordingRepository.create({
-        video_id: videoGuid,
-        guid: videoGuid,
-        video_library_id: videoLibraryId.toString(),
-        status: 'processing',
-      });
-      await RecordingRepository.save(recording);
-    }
-  }
-
-  /**
-   * Handle status 2 - Encoding
-   */
-  async handleEncoding(videoGuid: string, videoLibraryId: number) {
-    const RecordingRepository = AppDataSource.getRepository(Recording);
-    
-    let recording = await RecordingRepository.findOne({
-      where: { video_id: videoGuid },
-    });
-
-    if (recording) {
-      recording.status = 'encoding';
-      recording.video_library_id = videoLibraryId.toString();
-      await RecordingRepository.save(recording);
-    } else {
-      recording = RecordingRepository.create({
-        video_id: videoGuid,
-        guid: videoGuid,
-        video_library_id: videoLibraryId.toString(),
-        status: 'encoding',
-      });
-      await RecordingRepository.save(recording);
-    }
-  }
-
-  /**
-   * Handle status 3 - Finished
-   */
-  async handleFinished(videoGuid: string, videoLibraryId: number) {
-    const RecordingRepository = AppDataSource.getRepository(Recording);
-    
-    let recording = await RecordingRepository.findOne({
-      where: { video_id: videoGuid },
-    });
-
-    if (recording) {
-      recording.status = 'finished';
-      recording.video_library_id = videoLibraryId.toString();
-        recording.uploaded_at = new Date();
-      await RecordingRepository.save(recording);
-    } else {
-      recording = RecordingRepository.create({
-        video_id: videoGuid,
-        guid: videoGuid,
-        video_library_id: videoLibraryId.toString(),
-        status: 'finished',
-        uploaded_at: new Date(),
-      });
-      await RecordingRepository.save(recording);
-    }
-  }
-
-  /**
-   * Handle status 4 - Resolution finished
-   */
-  async handleResolutionFinished(videoGuid: string, videoLibraryId: number) {
-    const RecordingRepository = AppDataSource.getRepository(Recording);
-    
-    let recording = await RecordingRepository.findOne({
-      where: { video_id: videoGuid },
-    });
-
-    if (recording) {
-      recording.status = 'resolution_finished';
-      recording.video_library_id = videoLibraryId.toString();
-      await RecordingRepository.save(recording);
-    } else {
-      recording = RecordingRepository.create({
-        video_id: videoGuid,
-        guid: videoGuid,
-        video_library_id: videoLibraryId.toString(),
-        status: 'resolution_finished',
-      });
-      await RecordingRepository.save(recording);
-    }
-  }
-
-  /**
-   * Handle status 5 - Failed
-   */
-  async handleFailed(videoGuid: string, videoLibraryId: number) {
-    const RecordingRepository = AppDataSource.getRepository(Recording);
-    
-    let recording = await RecordingRepository.findOne({
-      where: { video_id: videoGuid },
-    });
-
-    if (recording) {
-      recording.status = 'failed';
-      recording.video_library_id = videoLibraryId.toString();
-      await RecordingRepository.save(recording);
-    } else {
-      recording = RecordingRepository.create({
-        video_id: videoGuid,
-        guid: videoGuid,
-        video_library_id: videoLibraryId.toString(),
-        status: 'failed',
-      });
-      await RecordingRepository.save(recording);
-    }
-  }
-
-  /**
-   * Handle webhook request and route to appropriate status handler
+   * Handle webhook request and update recording status
    */
   async handleWebhook(req: Request, res: Response) {
     try {
@@ -168,38 +29,50 @@ class WebhookHttpHandler {
         });
       }
 
-      // Route to appropriate handler based on status
-      switch (Status) {
-        case 0:
-          await this.handleQueued(VideoGuid, VideoLibraryId);
-          break;
-        case 1:
-          await this.handleProcessing(VideoGuid, VideoLibraryId);
-          break;
-        case 2:
-          await this.handleEncoding(VideoGuid, VideoLibraryId);
-          break;
-        case 3:
-          await this.handleFinished(VideoGuid, VideoLibraryId);
-          break;
-        case 4:
-          await this.handleResolutionFinished(VideoGuid, VideoLibraryId);
-          break;
-        case 5:
-          await this.handleFailed(VideoGuid, VideoLibraryId);
-          break;
-        default:
-          // Status 6-10 are not implemented, but we'll log and return success
-          console.log(`Webhook received for unhandled status ${Status} for video ${VideoGuid}`);
-          return res.status(200).json({
-            success: true,
-            message: `Status ${Status} received but not handled`,
-          });
+      const statusCode = Number(Status);
+      const statusString = this.statusMap[statusCode];
+
+      if (!statusString) {
+        // Status 6-10 are not implemented, but we'll log and return success
+        console.log(`Webhook received for unhandled status ${statusCode} for video ${VideoGuid}`);
+        return res.status(200).json({
+          success: true,
+          message: `Status ${statusCode} received but not handled`,
+        });
+      }
+
+      const RecordingRepository = AppDataSource.getRepository(Recording);
+      
+      let recording = await RecordingRepository.findOne({
+        where: { video_id: VideoGuid },
+      });
+
+      if (recording) {
+        recording.status = statusString;
+        recording.video_library_id = VideoLibraryId.toString();
+        if (statusCode === 3) {
+          recording.uploaded_at = new Date();
+        }
+        const savedRecording = await RecordingRepository.save(recording);
+        await bunnyManager.updateRecordingMetadata(savedRecording.id as string);
+      } else {
+        const recordingData: any = {
+          video_id: VideoGuid,
+          guid: VideoGuid,
+          video_library_id: VideoLibraryId.toString(),
+          status: statusString,
+        };
+        if (statusCode === 3) {
+          recordingData.uploaded_at = new Date();
+        }
+        const newRecording = RecordingRepository.create(recordingData);
+        const savedRecording = await RecordingRepository.save(newRecording) as any;
+        await bunnyManager.updateRecordingMetadata(savedRecording.id as string);
       }
 
       res.status(200).json({
         success: true,
-        message: `Status ${Status} processed successfully`,
+        message: `Status ${statusCode} processed successfully`,
       });
     } catch (error: any) {
       console.error('Webhook processing error:', error);
@@ -212,4 +85,3 @@ class WebhookHttpHandler {
 }
 
 export default WebhookHttpHandler;
-

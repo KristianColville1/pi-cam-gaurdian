@@ -84,6 +84,37 @@ class StorageController {
     return storageHttpHandler.updateFile(req, res);
   }
 
+  @route('patch', '/files/:id', authenticateRequest())
+  @apiDoc({
+    summary: 'Update file name',
+    description: 'Update file name/title. Requires authentication.',
+    tags: ['Storage'],
+    operationId: 'patchFile',
+    parameters: [
+      { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+    ],
+    request: {
+      body: {
+        schema: {
+          type: 'object',
+          required: ['title'],
+          properties: {
+            title: { type: 'string' },
+          },
+        },
+      },
+    },
+    responses: {
+      200: { description: 'File name updated successfully' },
+      401: { description: 'Authentication required' },
+      404: { description: 'File not found' },
+      500: { description: 'Internal server error' },
+    },
+  })
+  async patchFile(req: Request, res: Response) {
+    return storageHttpHandler.patchFile(req, res);
+  }
+
   @route('delete', '/files/:id', authenticateRequest())
   @apiDoc({
     summary: 'Delete file',
@@ -175,6 +206,37 @@ class StorageController {
   })
   async updateRecording(req: Request, res: Response) {
     return storageHttpHandler.updateRecording(req, res);
+  }
+
+  @route('patch', '/recordings/:id', authenticateRequest())
+  @apiDoc({
+    summary: 'Update recording name',
+    description: 'Update recording name/title. Requires authentication.',
+    tags: ['Storage'],
+    operationId: 'patchRecording',
+    parameters: [
+      { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+    ],
+    request: {
+      body: {
+        schema: {
+          type: 'object',
+          required: ['title'],
+          properties: {
+            title: { type: 'string' },
+          },
+        },
+      },
+    },
+    responses: {
+      200: { description: 'Recording name updated successfully' },
+      401: { description: 'Authentication required' },
+      404: { description: 'Recording not found' },
+      500: { description: 'Internal server error' },
+    },
+  })
+  async patchRecording(req: Request, res: Response) {
+    return storageHttpHandler.patchRecording(req, res);
   }
 
   @route('delete', '/recordings/:id', authenticateRequest())

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, ButtonGroup, Spinner, Form, Pagination } from 'react-bootstrap';
-import { FaEye, FaTrash } from 'react-icons/fa';
+import { FaEye, FaTrash, FaEdit } from 'react-icons/fa';
 import { formatTimestamp } from '../../utils/date_utils';
 import { getRecordingStatus } from '../../utils/recording_utils';
 import { storageAPI } from '../../lib/api/storage';
 import { useToast } from '@hooks/useToast';
 import { RECORDING_STATUS } from '../../utils/recording_utils';
+import EditRecordingModal from './EditRecordingModal';
 
 const MAX_ROWS_PER_PAGE = 10;
 
@@ -21,6 +22,8 @@ function RecordingsTable({ onViewRecording }) {
   const [recordings, setRecordings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState(null);
+  const [selectedRecording, setSelectedRecording] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [filters, setFilters] = useState({
     page: 1,
     limit: MAX_ROWS_PER_PAGE,
@@ -74,6 +77,35 @@ function RecordingsTable({ onViewRecording }) {
       fetchRecordings(filters);
     } catch (error) {
       triggerToast('danger', 'Delete Failed', error.response?.data?.message || 'Failed to delete recording');
+    }
+  };
+
+  const handleEdit = (recording) => {
+    setSelectedRecording(recording);
+    setShowEditModal(true);
+  };
+
+  const handleSave = async (title) => {
+    if (!selectedRecording) return;
+    try {
+      await storageAPI.patchRecording(selectedRecording.id, title);
+      triggerToast('success', 'Recording Updated', 'Recording name updated successfully');
+      fetchRecordings(filters);
+    } catch (error) {
+      triggerToast('danger', 'Update Failed', error.response?.data?.message || 'Failed to update recording');
+      throw error;
+    }
+  };
+
+  const handleDeleteFromModal = async () => {
+    if (!selectedRecording) return;
+    try {
+      await storageAPI.deleteRecording(selectedRecording.id);
+      triggerToast('success', 'Recording Deleted', 'Recording deleted successfully');
+      fetchRecordings(filters);
+    } catch (error) {
+      triggerToast('danger', 'Delete Failed', error.response?.data?.message || 'Failed to delete recording');
+      throw error;
     }
   };
 
@@ -208,6 +240,13 @@ function RecordingsTable({ onViewRecording }) {
                           <FaEye />
                         </Button>
                         <Button
+                          variant="outline-light"
+                          onClick={() => handleEdit(recording)}
+                          title="Edit recording"
+                        >
+                          <FaEdit />
+                        </Button>
+                        <Button
                           variant="outline-danger"
                           onClick={() => handleDelete(recording.id)}
                           title="Delete recording"
@@ -225,6 +264,17 @@ function RecordingsTable({ onViewRecording }) {
       </div>
 
       {renderPagination()}
+
+      <EditRecordingModal
+        recording={selectedRecording}
+        show={showEditModal}
+        onHide={() => {
+          setShowEditModal(false);
+          setSelectedRecording(null);
+        }}
+        onSave={handleSave}
+        onDelete={handleDeleteFromModal}
+      />
     </div>
   );
 }
