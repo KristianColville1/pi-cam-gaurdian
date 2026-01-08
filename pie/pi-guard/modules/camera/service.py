@@ -1,10 +1,11 @@
 """Camera service with dual-stream support."""
 import logging
+import subprocess
 from pathlib import Path
 from typing import Optional
 from picamera2 import Picamera2
 from picamera2.encoders import H264Encoder
-from picamera2.outputs import FileOutput
+from picamera2.outputs import FileOutput, Output
 from config import settings
 from modules.camera.utils import QueueOutput
 
@@ -23,8 +24,9 @@ class CameraService:
         self._encoder: Optional[H264Encoder] = None
         self._encoder_output: Optional[QueueOutput] = None
         self._recording_encoder: Optional[H264Encoder] = None
-        self._recording_output: Optional[FileOutput] = None
+        self._recording_output: Optional[Output] = None
         self._recording_file: Optional[Path] = None
+        self._final_mp4_path: Optional[Path] = None
         self._running = False
         self._recording = False
     
@@ -126,7 +128,7 @@ class CameraService:
         return self._encoder_output
     
     def start_recording(self, file_path: Path) -> bool:
-        """Start recording video to file."""
+        """Start recording video - records to H.264, converts to MP4 on stop."""
         if not self._running or not self.camera or not self.camera.started:
             logger.error("Camera not started, cannot start recording")
             return False
@@ -137,10 +139,12 @@ class CameraService:
         
         try:
             file_path = Path(file_path)
-            file_path.parent.mkdir(parents=True, exist_ok=True)
+            # Record to H.264 first (will convert to MP4 on stop)
+            h264_path = file_path.with_suffix('.h264') if file_path.suffix == '.mp4' else file_path
+            h264_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # Create file output for recording
-            self._recording_output = FileOutput(file_path)
+            # Create file output for recording (simple H.264 file)
+            self._recording_output = FileOutput(h264_path)
             
             # Create encoder for recording (using main stream - high res)
             self._recording_encoder = H264Encoder(bitrate=settings.STREAM_BITRATE)
@@ -149,9 +153,11 @@ class CameraService:
             # Start recording encoder on main stream
             self.camera.start_encoder(self._recording_encoder, "main")
             
-            self._recording_file = file_path
+            # Store both paths (H.264 for recording, MP4 for final output)
+            self._recording_file = h264_path
+            self._final_mp4_path = file_path.with_suffix('.mp4') if h264_path.suffix == '.h264' else file_path
             self._recording = True
-            logger.info(f"Started recording to {file_path}")
+            logger.info(f"Started recording to: {h264_path}")
             return True
             
         except Exception as e:
@@ -160,15 +166,84 @@ class CameraService:
             return False
     
     def stop_recording(self) -> Optional[Path]:
-        """Stop recording and return the file path."""
+        """Stop recording, convert H.264 to MP4 with metadata, return MP4 path."""
         if not self._recording:
             logger.warning("Not currently recording")
             return None
         
-        file_path = self._recording_file
+        h264_path = self._recording_file
+        mp4_path = self._final_mp4_path
         self._stop_recording_internal()
-        logger.info(f"Stopped recording, file saved to {file_path}")
-        return file_path
+        
+        if not h264_path or not h264_path.exists():
+            logger.error(f"H.264 recording file not found: {h264_path}")
+            return None
+        
+        # Convert H.264 to MP4 using MP4Box (better for H.264 streams)
+        logger.info(f"Converting {h264_path} to MP4: {mp4_path}")
+        try:
+            import subprocess
+            # Use MP4Box to mux H.264 into MP4 container with metadata
+            cmd = [
+                "MP4Box",
+                "-add", str(h264_path),
+                "-fps", "30",  # Set framerate
+                "-new", str(mp4_path)
+            ]
+            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            
+            # Remove H.264 file after successful conversion
+            h264_path.unlink()
+            logger.info(f"Recording converted to MP4: {mp4_path}")
+            return mp4_path
+            
+        except subprocess.CalledProcessError as e:
+            logger.error(f"MP4Box conversion failed: {e.stderr.decode() if e.stderr else str(e)}")
+            # Fallback: try ffmpeg with re-encode
+            logger.info("Trying ffmpeg re-encode as fallback...")
+            try:
+                cmd = [
+                    "ffmpeg",
+                    "-f", "h264",
+                    "-i", str(h264_path),
+                    "-c:v", "libx264",
+                    "-preset", "ultrafast",
+                    "-crf", "23",
+                    "-movflags", "+faststart",
+                    "-y",
+                    str(mp4_path)
+                ]
+                subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                h264_path.unlink()
+                logger.info(f"Recording converted to MP4 via ffmpeg: {mp4_path}")
+                return mp4_path
+            except Exception:
+                return h264_path  # Return H.264 file as fallback
+        except FileNotFoundError:
+            # MP4Box not installed, use ffmpeg re-encode
+            logger.info("MP4Box not found, using ffmpeg re-encode...")
+            try:
+                cmd = [
+                    "ffmpeg",
+                    "-f", "h264",
+                    "-i", str(h264_path),
+                    "-c:v", "libx264",
+                    "-preset", "ultrafast",
+                    "-crf", "23",
+                    "-movflags", "+faststart",
+                    "-y",
+                    str(mp4_path)
+                ]
+                subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                h264_path.unlink()
+                logger.info(f"Recording converted to MP4: {mp4_path}")
+                return mp4_path
+            except Exception as e:
+                logger.error(f"FFmpeg conversion failed: {e}")
+                return h264_path  # Return H.264 file as fallback
+        except Exception as e:
+            logger.error(f"Error converting recording: {e}")
+            return h264_path  # Return H.264 file as fallback
     
     def _stop_recording_internal(self):
         """Internal method to stop recording."""
@@ -177,11 +252,21 @@ class CameraService:
                 self.camera.stop_encoder(self._recording_encoder)
         except Exception as e:
             logger.error(f"Error stopping recording encoder: {e}")
-        finally:
-            self._recording_encoder = None
-            self._recording_output = None
-            self._recording_file = None
-            self._recording = False
+        
+        # FileOutput doesn't need explicit close, but check anyway
+        if self._recording_output:
+            try:
+                if hasattr(self._recording_output, 'close'):
+                    self._recording_output.close()
+            except Exception as e:
+                logger.error(f"Error closing recording output: {e}")
+        
+        # Clean up
+        self._recording_encoder = None
+        self._recording_output = None
+        self._recording_file = None
+        self._final_mp4_path = None
+        self._recording = False
     
     def is_recording(self) -> bool:
         """Check if currently recording."""

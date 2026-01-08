@@ -1,6 +1,7 @@
 """Camera operation API routes."""
 import asyncio
 import logging
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from fastapi import APIRouter, Request, HTTPException
@@ -61,10 +62,16 @@ async def capture_image(request: Request):
         # Save image (blocking operation in executor)
         from PIL import Image
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
-            None,
-            lambda: Image.fromarray(frame).save(str(file_path), "JPEG", quality=85)
-        )
+        
+        def save_image():
+            """Save frame as JPEG, converting RGBA to RGB if needed."""
+            img = Image.fromarray(frame)
+            # Convert RGBA to RGB if needed (JPEG doesn't support alpha channel)
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
+            img.save(str(file_path), "JPEG", quality=85)
+        
+        await loop.run_in_executor(None, save_image)
         
         # Upload to storage if available
         url = None
@@ -99,9 +106,9 @@ async def start_recording(request: Request):
         raise HTTPException(status_code=409, detail="Recording already in progress")
     
     try:
-        # Generate filename
+        # Generate filename (will be changed to .mp4 by camera service)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"recording_{timestamp}.h264"
+        filename = f"recording_{timestamp}.mp4"
         
         # Get temp path
         if storage_service:
@@ -129,7 +136,7 @@ async def start_recording(request: Request):
 
 @router.get("/camera/recording/stop", response_model=CaptureResponse)
 async def stop_recording(request: Request):
-    """Stop video recording and upload to storage."""
+    """Stop video recording and upload MP4 to storage."""
     camera_service = getattr(request.app.state, 'camera_service', None)
     storage_service = getattr(request.app.state, 'storage_service', None)
     
@@ -140,22 +147,24 @@ async def stop_recording(request: Request):
         raise HTTPException(status_code=409, detail="No recording in progress")
     
     try:
-        # Stop recording
-        file_path = camera_service.stop_recording()
-        if not file_path or not file_path.exists():
+        # Stop recording (returns MP4 file path - recorded directly with metadata)
+        mp4_path = camera_service.stop_recording()
+        if not mp4_path or not mp4_path.exists():
             raise HTTPException(status_code=500, detail="Recording file not found")
         
-        # Upload to storage
+        logger.info(f"Recording saved to MP4: {mp4_path}")
+        
+        # Upload MP4 to storage
         url = None
         if storage_service:
-            video_info = await storage_service.upload_video(file_path)
+            video_info = await storage_service.upload_video(mp4_path)
             if video_info:
                 # Return video info URL if available
                 url = video_info.get('url') or video_info.get('videoLibraryId')
         
         return CaptureResponse(
             success=True,
-            file_path=str(file_path) if not url else None,
+            file_path=str(mp4_path) if not url else None,
             url=url,
             message="Recording stopped and uploaded successfully"
         )
