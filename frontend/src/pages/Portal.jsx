@@ -13,7 +13,7 @@ import PortalContentTabs from '@components/organisms/PortalContentTabs';
  * @description Displays the portal page for the PiCam Guardian application.
  */
 function Portal() {
-  const [activeTab, setActiveTab] = useState('events');
+  const [activeTab, setActiveTab] = useState('images');
   const [imageCaptured, setImageCaptured] = useState(0);
 
   const handleImageCaptured = () => {

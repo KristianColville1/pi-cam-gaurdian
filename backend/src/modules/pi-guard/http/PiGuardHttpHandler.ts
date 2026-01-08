@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import axios, { AxiosInstance } from 'axios';
+import fileRepository from '../../storage/repositories/FileRepository.js';
 
 class PiGuardHttpHandler {
   private client: AxiosInstance;
@@ -37,7 +38,44 @@ class PiGuardHttpHandler {
   async captureImage(req: Request, res: Response) {
     try {
       const response = await this.client.get('/camera/capture');
-      res.json({ data: response.data });
+      const piResponse = response.data;
+
+      // If capture was successful, store file information
+      if (piResponse.success && piResponse.url) {
+        try {
+          const url = new URL(piResponse.url);
+          const pathParts = url.pathname.split('/').filter(part => part);
+          const objectName = pathParts[pathParts.length - 1];
+          const path = pathParts.join('/'); // Join all parts to get full path like "images/2026/01/08/file.jpg"
+          
+          // Determine content type from file extension
+          let contentType = 'image/jpeg';
+          if (objectName.endsWith('.png')) {
+            contentType = 'image/png';
+          } else if (objectName.endsWith('.jpg') || objectName.endsWith('.jpeg')) {
+            contentType = 'image/jpeg';
+          }
+
+          await fileRepository.create({
+            url: piResponse.url,
+            path: path,
+            object_name: objectName,
+            full_path: url.pathname,
+            file_type: 'image',
+            content_type: contentType,
+            storage_zone_name: null,
+            storage_zone_id: null,
+            guid: null,
+            file_size: null,
+            checksum: null,
+            metadata: '{}',
+          });
+        } catch (dbError: any) {
+          console.error('Failed to store file information:', dbError);
+        }
+      }
+
+      res.json({ data: piResponse });
     } catch (error: any) {
       console.error('Capture image error:', error);
       const status = error.response?.status || 500;

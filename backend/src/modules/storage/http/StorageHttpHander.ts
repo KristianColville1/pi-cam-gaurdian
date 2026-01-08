@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
-import { AppDataSource } from '../../../core/config/database.js';
-import { File } from '../entities/File.entity.js';
-import { Recording } from '../entities/Recording.entity.js';
 import env from '../../../core/config/env.js';
+import fileRepository from '../repositories/FileRepository.js';
+import recordingRepository from '../repositories/RecordingRepository.js';
 
 class StorageHttpHandler {
   async getFiles(req: Request, res: Response) {
@@ -15,45 +14,15 @@ class StorageHttpHandler {
         file_type,
       } = req.query;
 
-      const FileRepository = AppDataSource.getRepository(File);
-      const queryBuilder = FileRepository.createQueryBuilder('file');
-
-      queryBuilder.where('file.deleted_at IS NULL');
-
-      if (file_type) {
-        queryBuilder.andWhere('file.file_type = :file_type', { file_type });
-      }
-
-      const sortOrder = (order as string).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-      const validSortFields = ['created_at', 'updated_at', 'file_type', 'file_size'];
-      const sortField = validSortFields.includes(sort as string) ? sort : 'created_at';
-      queryBuilder.orderBy(`file.${sortField}`, sortOrder);
-
-      const totalCount = await queryBuilder.getCount();
-
-      const pageNum = Math.max(1, parseInt(page as string, 10));
-      const limitNum = Math.min(100, Math.max(1, parseInt(limit as string, 10)));
-      const skip = (pageNum - 1) * limitNum;
-
-      queryBuilder.skip(skip).take(limitNum);
-
-      const files = await queryBuilder.getMany();
-
-      const totalPages = Math.ceil(totalCount / limitNum);
-      const hasNextPage = pageNum < totalPages;
-      const hasPrevPage = pageNum > 1;
-
-      res.json({
-        data: files,
-        pagination: {
-          page: pageNum,
-          limit: limitNum,
-          total: totalCount,
-          totalPages,
-          hasNextPage,
-          hasPrevPage,
-        },
+      const result = await fileRepository.findMany({
+        page: parseInt(page as string, 10),
+        limit: parseInt(limit as string, 10),
+        sort: sort as string,
+        order: (order as string).toUpperCase() as 'ASC' | 'DESC',
+        file_type: file_type as string,
       });
+
+      res.json(result);
     } catch (error: any) {
       console.error('Get files error:', error);
       res.status(500).json({ error: 'Internal server error', message: error.message });
@@ -63,10 +32,7 @@ class StorageHttpHandler {
   async getFileById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const FileRepository = AppDataSource.getRepository(File);
-      const file = await FileRepository.findOne({
-        where: { id, deleted_at: null },
-      });
+      const file = await fileRepository.findById(id);
 
       if (!file) {
         return res.status(404).json({ error: 'File not found' });
@@ -82,32 +48,28 @@ class StorageHttpHandler {
   async updateFile(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const FileRepository = AppDataSource.getRepository(File);
-      const file = await FileRepository.findOne({
-        where: { id, deleted_at: null },
-      });
-
-      if (!file) {
-        return res.status(404).json({ error: 'File not found' });
-      }
-
       const {
         title,
         metadata,
         file_type,
       } = req.body;
 
+      const updateData: any = {};
       if (title !== undefined) {
-        file.object_name = title;
+        updateData.object_name = title;
       }
       if (metadata !== undefined) {
-        file.metadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
+        updateData.metadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
       }
       if (file_type !== undefined) {
-        file.file_type = file_type;
+        updateData.file_type = file_type;
       }
 
-      const updatedFile = await FileRepository.save(file);
+      const updatedFile = await fileRepository.update(id, updateData);
+
+      if (!updatedFile) {
+        return res.status(404).json({ error: 'File not found' });
+      }
 
       res.json({
         message: 'File updated successfully',
@@ -122,17 +84,13 @@ class StorageHttpHandler {
   async deleteFile(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const FileRepository = AppDataSource.getRepository(File);
-      const file = await FileRepository.findOne({
-        where: { id, deleted_at: null },
-      });
+      const file = await fileRepository.findById(id);
 
       if (!file) {
         return res.status(404).json({ error: 'File not found' });
       }
 
-      file.deleted_at = new Date();
-      await FileRepository.save(file);
+      await fileRepository.softDelete(id);
 
       if (file.path && env.CDN_HOST && env.CDN_USER && env.CDN_PASS) {
         try {
@@ -159,45 +117,15 @@ class StorageHttpHandler {
         status,
       } = req.query;
 
-      const RecordingRepository = AppDataSource.getRepository(Recording);
-      const queryBuilder = RecordingRepository.createQueryBuilder('recording');
-
-      queryBuilder.where('recording.deleted_at IS NULL');
-
-      if (status) {
-        queryBuilder.andWhere('recording.status = :status', { status });
-      }
-
-      const sortOrder = (order as string).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-      const validSortFields = ['created_at', 'updated_at', 'recorded_at', 'uploaded_at', 'status'];
-      const sortField = validSortFields.includes(sort as string) ? sort : 'created_at';
-      queryBuilder.orderBy(`recording.${sortField}`, sortOrder);
-
-      const totalCount = await queryBuilder.getCount();
-
-      const pageNum = Math.max(1, parseInt(page as string, 10));
-      const limitNum = Math.min(100, Math.max(1, parseInt(limit as string, 10)));
-      const skip = (pageNum - 1) * limitNum;
-
-      queryBuilder.skip(skip).take(limitNum);
-
-      const recordings = await queryBuilder.getMany();
-
-      const totalPages = Math.ceil(totalCount / limitNum);
-      const hasNextPage = pageNum < totalPages;
-      const hasPrevPage = pageNum > 1;
-
-      res.json({
-        data: recordings,
-        pagination: {
-          page: pageNum,
-          limit: limitNum,
-          total: totalCount,
-          totalPages,
-          hasNextPage,
-          hasPrevPage,
-        },
+      const result = await recordingRepository.findMany({
+        page: parseInt(page as string, 10),
+        limit: parseInt(limit as string, 10),
+        sort: sort as string,
+        order: (order as string).toUpperCase() as 'ASC' | 'DESC',
+        status: status as string,
       });
+
+      res.json(result);
     } catch (error: any) {
       console.error('Get recordings error:', error);
       res.status(500).json({ error: 'Internal server error', message: error.message });
@@ -207,10 +135,7 @@ class StorageHttpHandler {
   async getRecordingById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const RecordingRepository = AppDataSource.getRepository(Recording);
-      const recording = await RecordingRepository.findOne({
-        where: { id, deleted_at: null },
-      });
+      const recording = await recordingRepository.findById(id);
 
       if (!recording) {
         return res.status(404).json({ error: 'Recording not found' });
@@ -226,32 +151,28 @@ class StorageHttpHandler {
   async updateRecording(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const RecordingRepository = AppDataSource.getRepository(Recording);
-      const recording = await RecordingRepository.findOne({
-        where: { id, deleted_at: null },
-      });
-
-      if (!recording) {
-        return res.status(404).json({ error: 'Recording not found' });
-      }
-
       const {
         title,
         metadata,
         status,
       } = req.body;
 
+      const updateData: any = {};
       if (title !== undefined) {
-        recording.title = title;
+        updateData.title = title;
       }
       if (metadata !== undefined) {
-        recording.metadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
+        updateData.metadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
       }
       if (status !== undefined) {
-        recording.status = status;
+        updateData.status = status;
       }
 
-      const updatedRecording = await RecordingRepository.save(recording);
+      const updatedRecording = await recordingRepository.update(id, updateData);
+
+      if (!updatedRecording) {
+        return res.status(404).json({ error: 'Recording not found' });
+      }
 
       res.json({
         message: 'Recording updated successfully',
@@ -266,17 +187,13 @@ class StorageHttpHandler {
   async deleteRecording(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const RecordingRepository = AppDataSource.getRepository(Recording);
-      const recording = await RecordingRepository.findOne({
-        where: { id, deleted_at: null },
-      });
+      const recording = await recordingRepository.findById(id);
 
       if (!recording) {
         return res.status(404).json({ error: 'Recording not found' });
       }
 
-      recording.deleted_at = new Date();
-      await RecordingRepository.save(recording);
+      await recordingRepository.softDelete(id);
 
       if (recording.video_id && env.VIDEO_CDN_API_KEY && env.VIDEO_CDN_LIBRARY_ID) {
         try {
@@ -336,4 +253,3 @@ class StorageHttpHandler {
 }
 
 export default StorageHttpHandler;
-

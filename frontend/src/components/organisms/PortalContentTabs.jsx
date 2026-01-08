@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from 'react-bootstrap';
+import { Card, Spinner } from 'react-bootstrap';
 import { cameraAPI } from '../../lib/api/camera';
+import { useStorage } from '../../hooks/useStorage';
 import { FaImage, FaVideo, FaHistory } from 'react-icons/fa';
 import './PortalContentTabs.css';
 
@@ -10,63 +11,40 @@ import './PortalContentTabs.css';
  * @param {Object} props - Component props
  * @param {string} props.activeTab - The active tab
  * @param {Function} props.onTabChange - Callback to change active tab
- * @param {Function} props.onImageCaptured - Callback when image is captured
+ * @param {number} props.onImageCaptured - Trigger count when image is captured
  * @returns {JSX.Element} The PortalContentTabs component
  */
 function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
-  const [images, setImages] = useState([]);
-  const [recordings, setRecordings] = useState([]);
+  const { files, recordings, loading, refreshFiles, refreshRecordings, startPolling } = useStorage();
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState({ images: false, recordings: false, events: false });
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
 
   useEffect(() => {
-    if (activeTab === 'images') {
-      loadImages();
-    } else if (activeTab === 'recordings') {
-      loadRecordings();
-    } else if (activeTab === 'events') {
+    if (activeTab === 'events') {
       loadEvents();
     }
   }, [activeTab]);
 
   useEffect(() => {
-    if (onImageCaptured) {
-      loadImages();
+    if (onImageCaptured > 0) {
+      setIsCapturing(true);
+      // Start polling immediately and continue every 10 seconds
+      startPolling();
+      refreshFiles();
+      refreshRecordings();
+      
+      // Keep spinner visible for a few seconds to show activity
+      const timer = setTimeout(() => {
+        setIsCapturing(false);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
     }
-  }, [onImageCaptured]);
-
-  const loadImages = async () => {
-    setLoading((prev) => ({ ...prev, images: true }));
-    try {
-      // TODO: Replace with actual API endpoint when available
-      // const response = await cameraAPI.getImages({ limit: 5 });
-      // setImages(response.data || []);
-      setImages([]);
-    } catch (error) {
-      console.error('Failed to load images:', error);
-      setImages([]);
-    } finally {
-      setLoading((prev) => ({ ...prev, images: false }));
-    }
-  };
-
-  const loadRecordings = async () => {
-    setLoading((prev) => ({ ...prev, recordings: true }));
-    try {
-      // TODO: Replace with actual API endpoint when available
-      // const response = await cameraAPI.getRecordings({ limit: 10 });
-      // setRecordings(response.data || []);
-      setRecordings([]);
-    } catch (error) {
-      console.error('Failed to load recordings:', error);
-      setRecordings([]);
-    } finally {
-      setLoading((prev) => ({ ...prev, recordings: false }));
-    }
-  };
+  }, [onImageCaptured, refreshFiles, refreshRecordings, startPolling]);
 
   const loadEvents = async () => {
-    setLoading((prev) => ({ ...prev, events: true }));
+    setEventsLoading(true);
     try {
       const response = await cameraAPI.getEvents({ limit: 20 });
       setEvents(response.data || []);
@@ -74,9 +52,13 @@ function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
       console.error('Failed to load events:', error);
       setEvents([]);
     } finally {
-      setLoading((prev) => ({ ...prev, events: false }));
+      setEventsLoading(false);
     }
   };
+
+  const images = files || [];
+  const isLoadingImages = loading.files || isCapturing;
+  const isLoadingRecordings = loading.recordings;
 
   const tabs = [
     { key: 'images', label: 'Images', icon: FaImage },
@@ -107,8 +89,9 @@ function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
       <Card.Body className="p-3" style={{ maxHeight: '600px', overflowY: 'auto' }}>
         {activeTab === 'images' && (
           <>
-            {loading.images ? (
+            {isLoadingImages ? (
               <div className="text-center py-4">
+                <Spinner animation="border" variant="primary" className="mb-2" />
                 <p className="text-muted">Loading images...</p>
               </div>
             ) : images.length === 0 ? (
@@ -119,16 +102,19 @@ function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
               </div>
             ) : (
               <div className="d-grid gap-2">
-                {images.map((image, index) => (
-                  <div key={index} className="border rounded p-2">
+                {images.map((image) => (
+                  <div key={image.id} className="border rounded p-2">
                     <img
-                      src={image.url}
-                      alt={image.filename || `Image ${index + 1}`}
+                      src={image.url || image.full_path}
+                      alt={image.object_name || `Image ${image.id}`}
                       className="img-fluid rounded"
                       style={{ maxHeight: '150px', width: '100%', objectFit: 'contain' }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
                     <small className="text-muted d-block mt-1">
-                      {image.filename || image.created_at || 'Unknown'}
+                      {image.object_name || new Date(image.created_at).toLocaleString() || 'Unknown'}
                     </small>
                   </div>
                 ))}
@@ -139,8 +125,9 @@ function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
 
         {activeTab === 'recordings' && (
           <>
-            {loading.recordings ? (
+            {isLoadingRecordings ? (
               <div className="text-center py-4">
+                <Spinner animation="border" variant="primary" className="mb-2" />
                 <p className="text-muted">Loading recordings...</p>
               </div>
             ) : recordings.length === 0 ? (
@@ -151,23 +138,31 @@ function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
               </div>
             ) : (
               <div className="list-group">
-                {recordings.map((recording, index) => (
-                  <div key={index} className="list-group-item">
+                {recordings.map((recording) => (
+                  <div key={recording.id} className="list-group-item">
                     <div className="d-flex justify-content-between align-items-center">
                       <div>
-                        <h6 className="mb-1">{recording.filename || `Recording ${index + 1}`}</h6>
+                        <h6 className="mb-1">{recording.title || `Recording ${recording.id}`}</h6>
                         <small className="text-muted">
-                          {recording.duration || recording.size || 'Unknown details'}
+                          {recording.duration ? `${recording.duration}s` : ''}
+                          {recording.file_size ? ` • ${(recording.file_size / 1024 / 1024).toFixed(2)} MB` : ''}
+                          {recording.status ? ` • ${recording.status}` : ''}
+                        </small>
+                        <br />
+                        <small className="text-muted">
+                          {recording.recorded_at ? new Date(recording.recorded_at).toLocaleString() : ''}
                         </small>
                       </div>
-                      <a
-                        href={recording.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-sm btn-primary"
-                      >
-                        View
-                      </a>
+                      {recording.video_url && (
+                        <a
+                          href={recording.video_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm btn-primary"
+                        >
+                          View
+                        </a>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -178,8 +173,9 @@ function PortalContentTabs({ activeTab, onTabChange, onImageCaptured }) {
 
         {activeTab === 'events' && (
           <>
-            {loading.events ? (
+            {eventsLoading ? (
               <div className="text-center py-4">
+                <Spinner animation="border" variant="primary" className="mb-2" />
                 <p className="text-muted">Loading events...</p>
               </div>
             ) : events.length === 0 ? (

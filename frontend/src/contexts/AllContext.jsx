@@ -7,8 +7,17 @@ import { ThemeProvider } from "./ThemeContext";
 import { SensorDataProvider } from "./SensorDataContext";
 import { ApiDocsProvider } from "./ApiDocsContext";
 import { HistoricalMetricsProvider } from "./HistoricalMetricsContext";
+import { StorageProvider } from "./StorageContext";
 
-const providers = [ThemeProvider, AuthProvider, ToastProvider, SensorDataProvider, ApiDocsProvider, HistoricalMetricsProvider];
+const providers = [
+    ThemeProvider,
+    AuthProvider,
+    ToastProvider,
+    SensorDataProvider,
+    ApiDocsProvider,
+    HistoricalMetricsProvider,
+    StorageProvider,
+];
 
 /**
  * AllContext component
